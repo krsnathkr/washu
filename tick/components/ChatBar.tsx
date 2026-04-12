@@ -69,7 +69,7 @@ export function ChatBar({ symbol, stats }: { symbol: string; stats: StockSnapsho
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none pb-4 px-4">
       <div className="w-full max-w-sm sm:max-w-md pointer-events-auto flex flex-col gap-2 relative">
-        
+
         {/* Drawer */}
         {isOpen && (
           <div className="bg-card w-full rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col mb-2 h-96 transition-all duration-300">
@@ -114,8 +114,8 @@ export function ChatBar({ symbol, stats }: { symbol: string; stats: StockSnapsho
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onFocus={() => {
-                 // optionally open drawer immediately if there are messages
-                 if (messages.length > 0) setIsOpen(true);
+              // optionally open drawer immediately if there are messages
+              if (messages.length > 0) setIsOpen(true);
             }}
           />
           <button

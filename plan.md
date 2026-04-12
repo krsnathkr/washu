@@ -32,7 +32,7 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 
 ### A6. Define shared types
 - **Touches:** `lib/types.ts`
-- **Types:** `Ticker`, `StockSnapshot`, `ChartPoint`, `NewsItem`, `BullBear`, `SentimentSummary`, `WatchlistEntry`
+- **Types:** `Ticker`, `StockSnapshot`, `ChartPoint`, `NewsItem`, `BullBear`, `SentimentSummary`, `SavedStockEntry`, `UserList`, `WatchlistEntry`
 - **Done when:** types compile and are imported by at least one stub route.
 
 ---
@@ -87,7 +87,7 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 
 ### C1. Discovery page shell
 - **Touches:** `app/page.tsx`, `app/layout.tsx`
-- **Layout:** centered card container, fixed bottom slot reserved for `<ChatBar />`, top-right link to `/watchlist`
+- **Layout:** centered card container, fixed bottom slot reserved for `<ChatBar />`, top-right link to `/lists`
 - **Done when:** an empty centered card renders against the theme background.
 
 ### C2. SwipeDeck component
@@ -134,31 +134,44 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 
 ### C10. Wire SwipeDeck → discovery loop
 - **Touches:** `app/page.tsx`
-- **Behavior:** on right-swipe → add to watchlist + toast → fetch next; on left-swipe → fetch next; prefetch next ticker's data while current card is visible
+- **Behavior:** on right-swipe → add to the built-in `Watchlist` + toast → fetch next; on left-swipe → fetch next; prefetch next ticker's data while current card is visible
 - **Done when:** the demo loop in §17 of `prd.md` runs end-to-end.
+
+### C11. Stock card list manager
+- **Touches:** `components/StockCard.tsx`, `components/StockListMenu.tsx`, `components/ListEditorDialog.tsx`
+- **Behavior:** add a 3-dot menu in the stock card header so users can add/remove the current stock across lists and create a new list inline
+- **Done when:** a user can save one stock into multiple lists without leaving the card.
 
 ---
 
-## Phase D — Watchlist + persistence
+## Phase D — Lists + persistence
 
-### D1. Watchlist context
-- **Touches:** `lib/watchlist.ts`
-- **API:** `useWatchlist()` → `{ entries, add(symbol), remove(symbol), has(symbol) }`, persisted in `localStorage` under `tick:watchlist`
-- **Done when:** entries survive a hard reload.
+### D1. Generalized lists store
+- **Touches:** `lib/lists.ts`, `lib/watchlist.ts`, `lib/types.ts`
+- **API:** `useLists()` → `{ lists, createList, updateList, addToList, removeFromList, toggleInList, isInList, getListsForSymbol }`
+- **Persistence:** `localStorage` under `tick:lists`
+- **Migration:** old `tick:watchlist` entries migrate automatically into the built-in `Watchlist`
+- **Done when:** lists survive a hard reload and legacy watchlist data is preserved.
 
 ### D2. Toast on swipe-right
-- **Touches:** `components/SwipeDeck.tsx` (or page wrapper)
-- **Lib:** `sonner` (already added in A4)
-- **Done when:** a right-swipe shows "Added AAPL to watchlist".
-
-### D3. Watchlist page
-- **Touches:** `app/watchlist/page.tsx`, `components/WatchlistItem.tsx`
-- **Renders:** grid of saved tickers with mini stats (price + day change), tap → opens full card view
-- **Done when:** every saved ticker shows up; remove button works.
-
-### D4. (P2) Undo last swipe
 - **Touches:** `app/page.tsx`
-- **Done when:** an undo toast button restores the previous card.
+- **Lib:** `sonner`
+- **Done when:** a right-swipe shows "Added AAPL to Watchlist" and supports undo.
+
+### D3. Lists page
+- **Touches:** `app/lists/page.tsx`, `components/WatchlistItem.tsx`
+- **Renders:** all saved lists on one page, with `Watchlist` first, emoji badges, edit action, item counts, and stock cards per list
+- **Done when:** every saved stock shows in the correct list and remove only affects that list.
+
+### D4. `/watchlist` compatibility route
+- **Touches:** `app/watchlist/page.tsx`
+- **Behavior:** redirect legacy `/watchlist` visits to `/lists`
+- **Done when:** existing links/bookmarks still land on the generalized lists page.
+
+### D5. List creation and emoji editing
+- **Touches:** `components/ListEditorDialog.tsx`, `app/lists/page.tsx`, `components/StockListMenu.tsx`
+- **Behavior:** custom lists get a random emoji at creation time; users can edit emoji later, including the built-in `Watchlist`
+- **Done when:** users can create and edit custom lists without touching code or storage manually.
 
 ---
 
@@ -194,6 +207,7 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 
 ## Critical files reference
 - `app/page.tsx`
+- `app/lists/page.tsx`
 - `app/watchlist/page.tsx`
 - `app/api/stock/[symbol]/route.ts`
 - `app/api/news/[symbol]/route.ts`
@@ -201,8 +215,8 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 - `app/api/gemini/bullbear/route.ts`
 - `app/api/gemini/chat/route.ts`
 - `app/api/discover/next/route.ts`
-- `components/StockCard.tsx`, `SwipeDeck.tsx`, `ChartPanel.tsx`, `ChatBar.tsx`, `StatsGrid.tsx`, `BullBearPanel.tsx`, `SentimentPanel.tsx`, `NewsPanel.tsx`, `WatchlistItem.tsx`
-- `lib/yahoo.ts`, `gemini.ts`, `newsapi.ts`, `reddit.ts`, `tickerUniverse.ts`, `cache.ts`, `watchlist.ts`, `types.ts`
+- `components/StockCard.tsx`, `SwipeDeck.tsx`, `ChartPanel.tsx`, `ChatBar.tsx`, `StatsGrid.tsx`, `BullBearPanel.tsx`, `SentimentPanel.tsx`, `NewsPanel.tsx`, `WatchlistItem.tsx`, `StockListMenu.tsx`, `ListEditorDialog.tsx`
+- `lib/yahoo.ts`, `gemini.ts`, `newsapi.ts`, `reddit.ts`, `tickerUniverse.ts`, `cache.ts`, `lists.ts`, `watchlist.ts`, `types.ts`
 - `app/globals.css` (provided color scheme)
 
 ## Verification / demo script
@@ -210,8 +224,18 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 2. First card loads AAPL: chart renders, stats populate, bull/bear + news stream in.
 3. Scroll inside the card to see all panels.
 4. Type "what's the biggest risk here?" in the chat bar → Gemini replies inline.
-5. Swipe right → toast "Added to watchlist", next card (e.g. NVDA) appears in <200 ms.
+5. Swipe right → toast "Added to Watchlist", next card (e.g. NVDA) appears in <200 ms.
 6. Swipe left twice → cards cycle without duplicates.
-7. Navigate to `/watchlist` → AAPL visible, click → opens card view.
-8. Toggle dark mode → theme switches cleanly.
-9. Kill NewsAPI key → news panel shows empty state, rest of card still works.
+7. Open the top-right `Lists` button → `Watchlist` appears first on `/lists`.
+8. Create a custom list, confirm it gets a random emoji, then edit its emoji.
+9. Use the stock-card 3-dot menu to add the same ticker to multiple lists.
+10. Navigate to `/watchlist` → it redirects to `/lists`.
+11. Toggle dark mode → theme switches cleanly.
+12. Kill NewsAPI key → news panel shows empty state, rest of card still works.
+
+## Current shipped additions
+- Generalized saved-stocks experience centered on `/lists`
+- Built-in default `Watchlist` retained as a special list
+- Multi-list local persistence with automatic legacy watchlist migration
+- Stock-card list menu for add/remove across lists
+- Random emoji on custom-list creation plus emoji editing later

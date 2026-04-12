@@ -5,6 +5,7 @@ import { BullBearPanel } from "./BullBearPanel";
 import { SentimentPanel } from "./SentimentPanel";
 import { NewsPanel } from "./NewsPanel";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { StockListMenu } from "./StockListMenu";
 
 export function StockCard({ symbol }: { symbol: string }) {
   const { stock, news, bullbear, sentiment } = useStockCard(symbol);
@@ -42,12 +43,15 @@ export function StockCard({ symbol }: { symbol: string }) {
                 <h1 className="text-3xl font-bold tracking-tight">{sData.symbol}</h1>
                 <p className="text-sm text-muted-foreground line-clamp-1">{sData.name}</p>
               </div>
-              <div className="flex flex-col items-end">
-                <span className="text-2xl font-bold">${sData.price.toFixed(2)}</span>
-                <span className={`text-sm font-semibold flex items-center gap-0.5 ${changeColor}`}>
-                  <ChangeIcon className="w-3.5 h-3.5" />
-                  {Math.abs(sData.change).toFixed(2)} ({Math.abs(sData.changePct * 100).toFixed(2)}%)
-                </span>
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-end">
+                  <span className="text-2xl font-bold">${sData.price.toFixed(2)}</span>
+                  <span className={`text-sm font-semibold flex items-center gap-0.5 ${changeColor}`}>
+                    <ChangeIcon className="w-3.5 h-3.5" />
+                    {Math.abs(sData.change).toFixed(2)} ({Math.abs(sData.changePct * 100).toFixed(2)}%)
+                  </span>
+                </div>
+                <StockListMenu symbol={sData.symbol} name={sData.name} />
               </div>
             </div>
           ) : (

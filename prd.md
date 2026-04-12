@@ -1,7 +1,7 @@
 # Tick — Product Requirements Document
 
 ## 1. Overview
-**Tick** is a minimal, Tinder-style web app for discovering stocks. Users swipe through stock cards, save interesting tickers to a watchlist, and ask Gemini follow-up questions inline. Tick does **not** execute trades — it is purely a discovery and research tool.
+**Tick** is a minimal, Tinder-style web app for discovering stocks. Users swipe through stock cards, save interesting tickers to a built-in `Watchlist` or custom lists, and ask Gemini follow-up questions inline. Tick does **not** execute trades — it is purely a discovery and research tool.
 
 ## 2. Problem
 Retail investors, especially newcomers, find traditional stock research tools (Yahoo Finance, Bloomberg, Seeking Alpha) overwhelming. They want a fast, fun, mobile-friendly way to surface new tickers and get a digestible summary in one place.
@@ -10,7 +10,7 @@ Retail investors, especially newcomers, find traditional stock research tools (Y
 - Make stock discovery feel playful and fast (Tinder-like).
 - Surface everything a casual investor needs about a ticker on one scrollable card.
 - Let users ask natural-language questions about the current ticker without leaving the page.
-- Save promising tickers to a personal watchlist.
+- Save promising tickers to a personal watchlist and organize them into custom lists.
 
 ## 4. Non-goals (out of scope for hackathon)
 - Real trading or brokerage integration
@@ -25,10 +25,11 @@ Retail investors (especially first-timers) on web/mobile who want a low-effort w
 
 ## 6. Core user stories
 1. **Discover** — As a user, I see a stock I haven't seen before with chart, fundamentals, bull/bear case, sentiment, and news on one card.
-2. **Swipe right** — As a user, I swipe right to add the current ticker to my watchlist.
+2. **Swipe right** — As a user, I swipe right to add the current ticker to my built-in `Watchlist`.
 3. **Swipe left** — As a user, I swipe left to skip and immediately see the next stock.
 4. **Ask** — As a user, I type "what's this company's moat?" and get a Gemini answer in the context of the current ticker.
-5. **Review** — As a user, I open the watchlist page and see every ticker I've saved.
+5. **Review** — As a user, I open the lists page and see every ticker I've saved.
+6. **Organize** — As a user, I create a custom list with an emoji and add the same ticker to multiple lists.
 
 ## 7. Features
 
@@ -41,30 +42,34 @@ Retail investors (especially first-timers) on web/mobile who want a low-effort w
 | F4 | Bull case / Bear case bullets | Gemini |
 | F5 | Recent news (3–5 articles per ticker) | NewsAPI |
 | F6 | Gemini chat bar at bottom of discovery page (ticker-scoped Q&A) | Gemini |
-| F7 | Watchlist page (saved tickers) | localStorage |
+| F7 | Lists page with built-in `Watchlist` and custom lists | localStorage |
+| F8 | Stock-card 3-dot menu for list management | localStorage |
+| F9 | Random emoji on list creation + emoji editing | localStorage |
 
 ### P1 — should ship if time
 | ID | Feature | Source |
 |---|---|---|
-| F8 | Analyst view summary | Gemini |
-| F9 | Reddit sentiment summary | Reddit JSON + Gemini |
+| F10 | Analyst view summary | Gemini |
+| F11 | Reddit sentiment summary | Reddit JSON + Gemini |
 
 ### P2 — nice to have
 | ID | Feature |
 |---|---|
-| F10 | Undo last swipe |
-| F11 | Dark mode toggle |
-| F12 | Swipe counter / streak |
+| F12 | Undo last swipe |
+| F13 | Dark mode toggle |
+| F14 | Swipe counter / streak |
 
 ## 8. Pages
 1. **`/` — Discovery page**: a single centered card with the swipe deck, plus the Gemini chat bar pinned at the bottom of the viewport.
-2. **`/watchlist` — Watchlist page**: grid/list of saved tickers with mini stats; clicking one opens the full card view.
-3. **`/ticker/[symbol]` — (optional) Deep-link page**: same card layout as discovery, but no swipe controls — used for sharing.
+2. **`/lists` — Lists page**: generalized saved-stocks page showing the built-in `Watchlist` plus all custom lists, with emoji, edit controls, and per-list stock grids.
+3. **`/watchlist` — Compatibility route**: redirects to `/lists` so older links still work.
+4. **`/ticker/[symbol]` — (optional) Deep-link page**: same card layout as discovery, but no swipe controls — used for sharing.
 
 ## 9. Discovery card layout (top → bottom, scrollable inside card)
 ```
 ┌─────────────────────────────────────┐
 │  AAPL   Apple Inc.       $xxx.xx ▲│   ← header: ticker, name, live price, day change %
+│                          [···]   │   ← 3-dot menu for list actions
 │  ───────────────────────────────────│
 │  [ Interactive price chart ]       │   ← 1D / 1W / 1M / 1Y tabs
 │  ───────────────────────────────────│
@@ -92,11 +97,12 @@ Retail investors (especially first-timers) on web/mobile who want a low-effort w
 - **Mobile-first responsive** — swipe gestures with touch on mobile; left/right arrow keys + on-screen buttons on desktop.
 - **Dark mode** — both light and dark CSS variables already provided in the theme; toggle persisted in localStorage.
 - **Accessibility** — keyboard navigation, sufficient contrast (theme already meets it), screen-reader labels on swipe buttons.
+- **Local persistence only** — saved lists stay in browser storage for this version; no account sync.
 
 ## 11. Tech stack (locked)
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 15 (App Router) + TypeScript |
+| Framework | Next.js 16 (App Router) + TypeScript |
 | Styling | Tailwind v4 (provided color scheme in `globals.css`) |
 | UI primitives | shadcn/ui |
 | Icons | lucide-react |
@@ -106,7 +112,7 @@ Retail investors (especially first-timers) on web/mobile who want a low-effort w
 | News | NewsAPI |
 | Reddit | Public Reddit `.json` endpoints (no OAuth) |
 | LLM | Google Gemini API (`@google/generative-ai`) |
-| State / persistence | localStorage + React Context |
+| State / persistence | localStorage + React external-store hooks |
 | Deploy | Vercel |
 
 ### Required env vars
@@ -119,7 +125,8 @@ NEWSAPI_KEY=
 ```
 app/
 ├── page.tsx                          → Discovery page (swipe loop)
-├── watchlist/page.tsx                → Saved tickers
+├── lists/page.tsx                    → Built-in Watchlist + custom lists
+├── watchlist/page.tsx                → Redirects to /lists
 ├── ticker/[symbol]/page.tsx          → (optional) deep-link card view
 └── api/
     ├── stock/[symbol]/route.ts       → yahoo-finance2 quote + summary + chart
@@ -132,6 +139,8 @@ app/
 components/
 ├── StockCard.tsx
 ├── SwipeDeck.tsx                     → framer-motion swipe physics
+├── StockListMenu.tsx                 → 3-dot save/manage menu on the stock card
+├── ListEditorDialog.tsx              → create/edit list modal with emoji picker
 ├── ChartPanel.tsx
 ├── StatsGrid.tsx
 ├── BullBearPanel.tsx
@@ -147,7 +156,8 @@ lib/
 ├── reddit.ts
 ├── tickerUniverse.ts                 → ~150 curated US tickers + next-ticker logic
 ├── cache.ts                          → in-memory TTL cache (server)
-├── watchlist.ts                      → localStorage CRUD + React Context
+├── lists.ts                          → generalized localStorage lists store + legacy migration
+├── watchlist.ts                      → compatibility wrapper around the built-in Watchlist
 └── types.ts
 ```
 
@@ -156,6 +166,7 @@ lib/
 2. Frontend fires parallel requests: `/api/stock/AAPL`, `/api/news/AAPL`, `/api/gemini/bullbear?symbol=AAPL`, `/api/reddit/AAPL`.
 3. Card renders progressively — header + chart + stats first, then bull/bear, sentiment, news as each promise resolves.
 4. Background prefetch of the *next* ticker begins as soon as the current card is visible.
+5. Users can save from a swipe into `Watchlist` or use the stock-card menu to organize into multiple lists.
 
 ### Caching (mandatory because of free-tier limits)
 | Data | TTL | Reason |
@@ -164,6 +175,7 @@ lib/
 | News | 30 min | NewsAPI free tier = 100 req/day |
 | Bull/bear + analyst view | 6 h | Expensive Gemini call, content changes slowly |
 | Reddit sentiment | 1 h | Sentiment shifts hourly, not by minute |
+| Saved lists | persisted | local browser storage, migrated from legacy `tick:watchlist` |
 
 ## 13. Gemini prompt sketches
 
@@ -206,7 +218,7 @@ The user-provided Tailwind v4 theme (light + dark) is the source of truth. Prima
 - Cold-load discovery page → first card interactive in **< 3 s**
 - Swipe → next card visible in **< 200 ms** (because of prefetch)
 - Gemini chat reply in **< 4 s** for typical questions
-- Watchlist persists across page reloads
+- Watchlist and custom lists persist across page reloads
 - Zero unhandled errors during a 2-minute demo loop
 
 ## 16. Risks & mitigations
@@ -216,3 +228,15 @@ The user-provided Tailwind v4 theme (light + dark) is the source of truth. Prima
 | Gemini rate-limited mid-demo | 6 h cache on bull/bear; pre-warm cache for the first ~10 tickers before demoing |
 | Reddit blocks scraping from a Vercel IP | Set a User-Agent header; fallback to "No sentiment available" empty state |
 | yahoo-finance2 returns stale/empty data | Show skeleton + error state; retry once with backoff |
+| Users expect account sync for lists | Make browser-local scope explicit in product copy and docs |
+
+## 17. Saved lists UX
+- The built-in default list is named `Watchlist`.
+- Right swipe adds the current ticker directly into `Watchlist`.
+- Users can create unlimited custom lists in-browser.
+- New custom lists get a random emoji from a curated set.
+- Users can edit any custom list's name and emoji later.
+- Users can also edit the emoji on the built-in `Watchlist`, but its name stays fixed.
+- The same stock can belong to multiple lists at once.
+- Removing a stock from one list does not remove it from the others.
+- Legacy `tick:watchlist` data migrates automatically into the new generalized lists store.

@@ -54,9 +54,22 @@ export interface SentimentSummary {
   points: string[];
 }
 
-/** A saved entry in the user's watchlist */
-export interface WatchlistEntry {
+/** A saved stock entry stored inside a user list */
+export interface SavedStockEntry {
   symbol: string;
   name: string;
   addedAt: number; // Unix timestamp (ms)
 }
+
+/** A user-defined list of saved stocks */
+export interface UserList {
+  id: string;
+  name: string;
+  emoji: string;
+  createdAt: number;
+  updatedAt: number;
+  entries: SavedStockEntry[];
+}
+
+/** Backwards-compatible alias for the original single-list model */
+export type WatchlistEntry = SavedStockEntry;

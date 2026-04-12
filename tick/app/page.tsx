@@ -6,16 +6,16 @@ import { StockCard } from "@/components/StockCard";
 import { SwipeDeck } from "@/components/SwipeDeck";
 import { ChatBar } from "@/components/ChatBar";
 import { useStockCard } from "@/lib/useStockCard";
-import { useWatchlist } from "@/lib/watchlist";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
 import { ListPlus } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+import { useLists, WATCHLIST_ID } from "@/lib/lists";
 
 export default function Home() {
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const watchlist = useWatchlist();
+  const listsStore = useLists();
 
   // Fetch the first 2 symbols to start the loop
   useEffect(() => {
@@ -54,22 +54,36 @@ export default function Home() {
     const currentSymbol = activeSymbol;
 
     if (dir === "right") {
-      watchlist.add(currentSymbol);
-      toast.success(`Added ${currentSymbol} to watchlist`, {
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            watchlist.remove(currentSymbol);
-            undoSwipe(currentSymbol);
-          }
-        }
-      });
+      const added = listsStore.addToList(
+        WATCHLIST_ID,
+        currentSymbol,
+        activeStock?.data?.name || currentSymbol
+      );
+
+      if (added) {
+        toast.success(`Added ${currentSymbol} to Watchlist`, {
+          action: {
+            label: "Undo",
+            onClick: () => {
+              listsStore.removeFromList(WATCHLIST_ID, currentSymbol);
+              undoSwipe(currentSymbol);
+            },
+          },
+        });
+      } else {
+        toast(`${currentSymbol} is already in Watchlist`, {
+          action: {
+            label: "Undo swipe",
+            onClick: () => undoSwipe(currentSymbol),
+          },
+        });
+      }
     } else {
       toast(`Skipped ${currentSymbol}`, {
         action: {
-          label: 'Undo',
-          onClick: () => undoSwipe(currentSymbol)
-        }
+          label: "Undo",
+          onClick: () => undoSwipe(currentSymbol),
+        },
       });
     }
 
@@ -105,9 +119,9 @@ export default function Home() {
       <div className="absolute top-4 right-4 z-10 w-full flex justify-end px-4 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
           <ThemeToggle />
-          <Link href="/watchlist" className="bg-card text-foreground p-2 rounded-full shadow-md border border-border/50 hover:bg-muted transition-colors flex items-center gap-2">
+          <Link href="/lists" className="bg-card text-foreground p-2 rounded-full shadow-md border border-border/50 hover:bg-muted transition-colors flex items-center gap-2">
              <ListPlus className="w-5 h-5" />
-             <span className="text-sm font-semibold pr-2">Watchlist</span>
+             <span className="text-sm font-semibold pr-2">Lists</span>
           </Link>
         </div>
       </div>

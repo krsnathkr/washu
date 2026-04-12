@@ -17,7 +17,7 @@ export default function TickerPage({ params }: { params: Promise<{ symbol: strin
     <main className="flex-1 flex flex-col items-center flex-grow bg-background relative overflow-hidden min-h-screen">
       
       <div className="absolute top-4 left-4 z-10 w-full flex justify-between px-4 pointer-events-none pr-8">
-        <Link href="/watchlist" className="pointer-events-auto bg-card text-foreground p-2 rounded-full shadow-md border border-border/50 hover:bg-muted transition-colors flex items-center gap-2">
+        <Link href="/lists" className="pointer-events-auto bg-card text-foreground p-2 rounded-full shadow-md border border-border/50 hover:bg-muted transition-colors flex items-center gap-2">
            <ArrowLeft className="w-5 h-5" />
            <span className="text-sm font-semibold pr-2">Back</span>
         </Link>
