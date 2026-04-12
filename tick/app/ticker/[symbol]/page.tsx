@@ -14,19 +14,23 @@ export default function TickerPage({ params }: { params: Promise<{ symbol: strin
   const { stock } = useStockCard(resolvedSymbol);
 
   return (
-    <main className="flex-1 flex flex-col items-center flex-grow bg-background relative overflow-hidden min-h-screen">
-      
-      <div className="absolute top-4 left-4 z-10 w-full flex justify-between px-4 pointer-events-none pr-8">
-        <Link href="/lists" className="pointer-events-auto bg-card text-foreground p-2 rounded-full shadow-md border border-border/50 hover:bg-muted transition-colors flex items-center gap-2">
-           <ArrowLeft className="w-5 h-5" />
-           <span className="text-sm font-semibold pr-2">Back</span>
-        </Link>
-        <div className="pointer-events-auto">
-          <ThemeToggle />
+    <main className="relative flex min-h-[100svh] flex-1 flex-col items-center overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 [padding-top:calc(env(safe-area-inset-top)+1rem)]">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
+          <Link
+            href="/lists"
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-3.5 py-2.5 text-foreground shadow-md transition-colors hover:bg-muted"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="pr-1 text-sm font-semibold">Back</span>
+          </Link>
+          <div className="pointer-events-auto">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-28 sm:pb-32 relative overflow-hidden h-full">
+      <div className="relative flex w-full flex-1 items-start justify-center overflow-hidden px-4 pt-[3.75rem] pb-[4.75rem] sm:items-center sm:pt-16 sm:pb-32">
          <div
            aria-hidden="true"
            className="pointer-events-none absolute inset-0"
@@ -38,7 +42,7 @@ export default function TickerPage({ params }: { params: Promise<{ symbol: strin
              opacity: 0.3,
            }}
          />
-         <div className="w-full max-w-md md:max-w-5xl h-full min-h-[600px] md:h-[85vh] flex items-stretch justify-center relative">
+         <div className="relative flex h-full min-h-0 w-full max-w-md items-stretch justify-center md:max-w-5xl">
             <StockCard symbol={resolvedSymbol} />
          </div>
       </div>

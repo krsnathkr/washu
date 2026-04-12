@@ -5,8 +5,8 @@ import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 export const BullBearPanel = memo(function BullBearPanel({ data, loading }: { data: BullBear | null; loading: boolean }) {
   if (loading && !data) {
     return (
-      <div className="flex flex-col gap-4 px-4 py-4 border-t border-border">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="flex flex-col gap-4 border-t border-border px-4 py-5 sm:px-5 sm:py-4">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="flex flex-col gap-2">
             <h4 className="font-medium text-sm text-chart-1 flex items-center gap-1">
               <ArrowUpCircle className="w-4 h-4" /> Bull Case
@@ -30,15 +30,15 @@ export const BullBearPanel = memo(function BullBearPanel({ data, loading }: { da
 
   if (!data) {
     return (
-      <div className="flex flex-col gap-4 px-4 py-4 border-t border-border text-sm text-muted-foreground">
+      <div className="flex flex-col gap-4 border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5 sm:py-4">
         Bull/Bear analysis unavailable.
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-4 border-t border-border">
-      <div className="grid grid-cols-2 gap-6">
+    <div className="flex flex-col gap-6 border-t border-border px-4 py-5 sm:px-5 sm:py-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <h4 className="font-medium text-sm text-chart-1 flex items-center gap-1 mb-1">
             <ArrowUpCircle className="w-4 h-4" /> Bull Case

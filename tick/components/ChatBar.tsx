@@ -67,12 +67,12 @@ export function ChatBar({ symbol, stats }: { symbol: string; stats: StockSnapsho
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none pb-4 px-4">
-      <div className="w-full max-w-sm sm:max-w-md pointer-events-auto flex flex-col gap-2 relative">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center px-4 [padding-bottom:calc(env(safe-area-inset-bottom)+1rem)] sm:pb-4">
+      <div className="pointer-events-auto relative flex w-full max-w-lg flex-col gap-3">
 
         {/* Drawer */}
         {isOpen && (
-          <div className="bg-card w-full rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col mb-2 h-96 transition-all duration-300">
+          <div className="mb-1 flex h-[min(24rem,52svh)] w-full flex-col overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-2xl transition-all duration-300 sm:mb-2 sm:h-96">
             <div className="flex justify-between items-center px-4 py-3 border-b border-border bg-muted/30">
               <span className="font-semibold text-sm flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-primary" />
@@ -106,10 +106,13 @@ export function ChatBar({ symbol, stats }: { symbol: string; stats: StockSnapsho
         )}
 
         {/* Input Pill */}
-        <form onSubmit={handleSubmit} className="relative w-full shadow-lg rounded-full bg-card border border-border/50 flex items-center overflow-hidden">
+        <form
+          onSubmit={handleSubmit}
+          className="relative flex w-full items-center overflow-hidden rounded-[2rem] border border-border/50 bg-card shadow-lg"
+        >
           <input
             type="text"
-            className="w-full py-3.5 pl-5 pr-12 bg-transparent text-sm outline-none placeholder:text-muted-foreground placeholder:select-none"
+            className="w-full bg-transparent py-4 pl-5 pr-14 text-sm outline-none placeholder:select-none placeholder:text-muted-foreground"
             placeholder={`Ask anything about ${symbol}...`}
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -121,7 +124,7 @@ export function ChatBar({ symbol, stats }: { symbol: string; stats: StockSnapsho
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="absolute right-2 p-2 bg-primary text-primary-foreground rounded-full disabled:opacity-50 transition-opacity"
+            className="absolute right-2.5 flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
           >
             <Send className="w-4 h-4 ml-0.5" />
           </button>

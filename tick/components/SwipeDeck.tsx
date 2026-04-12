@@ -52,10 +52,15 @@ export const SwipeDeck = memo(function SwipeDeck({
   });
 
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 100;
-    if (info.offset.x > threshold) {
+    const isCoarsePointer =
+      typeof window !== "undefined" &&
+      window.matchMedia("(pointer: coarse)").matches;
+    const threshold = isCoarsePointer ? 64 : 100;
+    const velocityThreshold = isCoarsePointer ? 320 : 500;
+
+    if (info.offset.x > threshold || info.velocity.x > velocityThreshold) {
       triggerSwipe("right");
-    } else if (info.offset.x < -threshold) {
+    } else if (info.offset.x < -threshold || info.velocity.x < -velocityThreshold) {
       triggerSwipe("left");
     } else {
       // Spring back
@@ -75,18 +80,19 @@ export const SwipeDeck = memo(function SwipeDeck({
   }, []);
 
   return (
-    <div className="relative w-full max-w-5xl h-[85vh] perspective-[1000px] flex items-center justify-center">
+    <div className="relative flex h-full max-h-[calc(100svh-4.5rem)] w-full max-w-5xl items-start justify-center perspective-[1000px] sm:max-h-[85vh] sm:items-center">
       <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.5}
+        dragDirectionLock
+        dragElastic={0.2}
         onDragEnd={handleDragEnd}
         animate={controls}
-        style={{ x, rotate, opacity, backfaceVisibility: "hidden" }}
+        style={{ x, rotate, opacity, backfaceVisibility: "hidden", touchAction: "pan-y" }}
         exit={{}}
-        className="absolute inset-0 cursor-grab active:cursor-grabbing flex items-center justify-center will-change-transform"
+        className="absolute inset-x-0 top-0 bottom-8 flex cursor-grab items-center justify-center will-change-transform active:cursor-grabbing sm:bottom-0"
       >
-        <div className="relative h-full w-full max-w-5xl overflow-hidden rounded-3xl">
+        <div className="relative h-full w-full max-w-5xl overflow-hidden rounded-[1.75rem] sm:rounded-3xl">
           {children}
           <motion.div
             aria-hidden="true"
@@ -99,7 +105,7 @@ export const SwipeDeck = memo(function SwipeDeck({
             style={{ opacity: rightTintOpacity }}
           />
         </div>
-        <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 translate-y-1/2 items-center gap-3 sm:gap-4">
+        <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 translate-y-[38%] items-center gap-4 sm:translate-y-1/2">
           <button
             type="button"
             aria-label="Swipe left"
@@ -112,12 +118,12 @@ export const SwipeDeck = memo(function SwipeDeck({
           <button
             type="button"
             aria-label="Undo last swipe"
-            className="pointer-events-auto flex size-12 items-center justify-center rounded-full border border-border/70 bg-background/95 text-foreground shadow-lg backdrop-blur transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 sm:size-14"
+            className="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-border/70 bg-background/95 text-foreground shadow-lg backdrop-blur transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 sm:size-14"
             disabled={undoDisabled}
             onPointerDownCapture={(event) => event.stopPropagation()}
             onClick={onUndo}
           >
-            <Undo2 className="size-5 sm:size-6" />
+            <Undo2 className="size-4.5 sm:size-6" />
           </button>
           <button
             type="button"

@@ -22,12 +22,15 @@ export const StockCard = memo(function StockCard({ symbol }: { symbol: string })
   const ChangeIcon = isUp === true ? TrendingUp : isUp === false ? TrendingDown : Minus;
 
   return (
-    <div className="w-full h-full max-w-5xl bg-card text-card-foreground rounded-3xl shadow-xl border border-border/50 overflow-hidden flex flex-col max-h-[85vh]" style={{ contain: "layout style paint" }}>
+    <div
+      className="flex h-full max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-[1.75rem] border border-border/50 bg-card text-card-foreground shadow-xl sm:rounded-3xl"
+      style={{ contain: "layout style paint" }}
+    >
       {/* Scrollable Container inside the card */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar">
         
         {/* Header */}
-        <div className="px-5 pt-6 pb-2">
+        <div className="px-4 pt-5 pb-3 sm:px-5 sm:pt-6 sm:pb-2">
           {showLoadingState && !sData ? (
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-2">
@@ -40,14 +43,14 @@ export const StockCard = memo(function StockCard({ symbol }: { symbol: string })
               </div>
             </div>
           ) : sData ? (
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col">
-                <h1 className="text-3xl font-bold tracking-tight">{sData.symbol}</h1>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{sData.symbol}</h1>
                 <p className="text-sm text-muted-foreground line-clamp-1">{sData.name}</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-end">
-                  <span className="text-2xl font-bold">${sData.price.toFixed(2)}</span>
+                  <span className="text-xl font-bold sm:text-2xl">${sData.price.toFixed(2)}</span>
                   <span className={`text-sm font-semibold flex items-center gap-0.5 ${changeColor}`}>
                     <ChangeIcon className="w-3.5 h-3.5" />
                     {Math.abs(sData.change).toFixed(2)} ({Math.abs(sData.changePct * 100).toFixed(2)}%)
@@ -63,9 +66,9 @@ export const StockCard = memo(function StockCard({ symbol }: { symbol: string })
 
         {/* The Panels */}
         <ChartPanel key={symbol} symbol={symbol} initialChart={sData?.chart || null} />
-        
+
         {sData?.summary && (
-          <div className="px-5 py-3 border-y border-border/50">
+          <div className="border-y border-border/50 px-4 py-4 sm:px-5 sm:py-3">
             <p className="text-sm leading-relaxed text-muted-foreground line-clamp-4">
               {sData.summary}
             </p>

@@ -4,7 +4,7 @@ import { StockSnapshot } from "@/lib/types";
 export const StatsGrid = memo(function StatsGrid({ stats }: { stats: StockSnapshot | null }) {
   if (!stats) {
     return (
-      <div className="grid grid-cols-3 gap-4 px-4 py-2">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-4 px-4 py-4 text-sm sm:grid-cols-3 sm:px-5">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex flex-col gap-1">
             <div className="h-3 w-12 bg-muted animate-pulse rounded" />
@@ -33,7 +33,7 @@ export const StatsGrid = memo(function StatsGrid({ stats }: { stats: StockSnapsh
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-y-6 gap-x-4 px-4 py-4 text-sm">
+    <div className="grid grid-cols-2 gap-x-6 gap-y-5 px-4 py-4 text-sm sm:grid-cols-3 sm:px-5">
       {items.map((item) => (
         <div key={item.label} className="flex flex-col">
           <span className="text-muted-foreground text-xs uppercase tracking-wider">{item.label}</span>

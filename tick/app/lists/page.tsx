@@ -59,9 +59,9 @@ export default function ListsPage() {
   const hasSavedStocks = listsStore.lists.some((list) => list.entries.length > 0);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-4 md:px-8 md:py-8">
+    <main className="min-h-[100svh] bg-background px-4 py-4 [padding-top:calc(env(safe-area-inset-top)+1rem)] [padding-bottom:calc(env(safe-area-inset-bottom)+1rem)] md:px-8 md:py-8">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Link
               href="/"
@@ -77,11 +77,11 @@ export default function ListsPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
             <Button
               type="button"
               variant="outline"
-              className="h-10 rounded-full px-4"
+              className="h-11 w-full rounded-full px-4 sm:w-auto"
               onClick={openCreateEditor}
             >
               <ListPlus className="size-4" />
@@ -222,7 +222,7 @@ export default function ListsPage() {
 
       {/* Mobile selection pill */}
       {compare.selectedSymbol && !compare.compareData && !compare.loading && (
-        <div className="fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full border border-border/60 bg-card px-4 py-2 shadow-xl">
+        <div className="fixed left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full border border-border/60 bg-card px-4 py-2 shadow-xl [bottom:calc(env(safe-area-inset-bottom)+1rem)]">
           <span className="text-sm font-medium">
             <span className="font-bold text-primary">{compare.selectedSymbol}</span>
             {" "}selected — tap another to compare

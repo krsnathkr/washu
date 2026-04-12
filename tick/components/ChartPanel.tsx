@@ -167,16 +167,16 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
   ];
 
   return (
-    <div className="flex flex-col gap-2 pt-2 pb-4">
+    <div className="flex flex-col gap-3 px-4 pt-2 pb-5 sm:px-5 sm:pb-4">
       {/* Chart Canvas */}
-      <div className="h-48 w-full relative" ref={chartContainerRef}>
-        <div className="absolute right-2 top-2 z-20 flex items-center gap-1 rounded-full border border-border/60 bg-background/75 p-1 backdrop-blur-sm">
+      <div className="relative h-40 w-full sm:h-48" ref={chartContainerRef}>
+        <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 p-1.5 backdrop-blur-sm">
           {modes.map((mode) => (
             <button
               key={mode.value}
               onClick={() => !mode.disabled && setChartMode(mode.value)}
               disabled={mode.disabled}
-              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+              className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition-all ${
                 effectiveChartMode === mode.value
                   ? "bg-secondary text-secondary-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-muted"
@@ -208,7 +208,7 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
       </div>
 
       {/* Tabs */}
-      <div className="mt-2 flex justify-center gap-2">
+      <div className="mt-1 flex flex-wrap justify-center gap-2.5">
         {ranges.map((range) => (
           <button
             key={range}
@@ -216,7 +216,7 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
               setActiveRange(range);
               setLoading(range === "1M" ? false : remoteCharts[range] === undefined);
             }}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
               activeRange === range
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted"

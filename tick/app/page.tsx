@@ -168,19 +168,23 @@ export default function Home() {
   }
 
   return (
-    <main className="flex-1 flex flex-col items-center flex-grow bg-background relative overflow-hidden h-screen">
-      
-      <div className="absolute top-4 right-4 z-10 w-full flex justify-end px-4 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto">
+    <main className="relative flex min-h-[100svh] flex-1 flex-col items-center overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 [padding-top:calc(env(safe-area-inset-top)+1rem)]">
+        <div className="mx-auto flex w-full max-w-5xl justify-end">
+          <div className="pointer-events-auto flex items-center gap-3">
           <ThemeToggle />
-          <Link href="/lists" className="bg-card text-foreground p-2 rounded-full shadow-md border border-border/50 hover:bg-muted transition-colors flex items-center gap-2">
-             <ListPlus className="w-5 h-5" />
-             <span className="text-sm font-semibold pr-2">Lists</span>
-          </Link>
+            <Link
+              href="/lists"
+              className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-3.5 py-2.5 text-foreground shadow-md transition-colors hover:bg-muted"
+            >
+              <ListPlus className="h-5 w-5" />
+              <span className="pr-1 text-sm font-semibold">Lists</span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-28 sm:pb-32 relative overflow-hidden absolute inset-0">
+      <div className="relative flex w-full flex-1 items-start justify-center overflow-hidden px-4 pt-[3.75rem] pb-[4.75rem] sm:items-center sm:pt-16 sm:pb-32">
          {/* Thin grid background */}
          <div
            aria-hidden="true"

@@ -23,7 +23,7 @@ export function WatchlistItem({
 
   return (
     <Card className="p-4 transition-colors hover:bg-muted/50">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link href={`/ticker/${entry.symbol}`} className="flex-1 min-w-0">
         <div className="flex flex-col">
           <span className="font-bold text-lg">{entry.symbol}</span>
@@ -31,7 +31,7 @@ export function WatchlistItem({
         </div>
         </Link>
       
-        <div className="flex items-center gap-4">
+        <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end sm:gap-4">
           {hasQuote ? (
            <div className="text-right">
              <div className="font-medium">${price.toFixed(2)}</div>
@@ -48,6 +48,7 @@ export function WatchlistItem({
           <Button
             variant="ghost"
             size="icon"
+            className="size-10 rounded-full shrink-0"
             aria-label={`Remove ${entry.symbol}`}
             onClick={(e) => {
               e.preventDefault();
