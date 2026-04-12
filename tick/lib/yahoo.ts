@@ -1,5 +1,5 @@
 import YahooFinance from 'yahoo-finance2';
-import { StockSnapshot, ChartPoint } from './types';
+import { StockSnapshot, ChartPoint, CompareFinancials } from './types';
 
 const yahooFinance = new YahooFinance();
 
@@ -51,5 +51,35 @@ export async function getStockSnapshot(symbol: string, range: ChartRange = '1M')
     volume: quote.regularMarketVolume ?? null,
     summary: profile?.summaryProfile?.longBusinessSummary || 'No summary available.',
     chart
+  };
+}
+
+/** Lightweight fetch for comparison — quote + financialData, no chart */
+export async function getCompareFinancials(symbol: string): Promise<CompareFinancials> {
+  const [quote, summary] = await Promise.all([
+    yahooFinance.quote(symbol),
+    yahooFinance
+      .quoteSummary(symbol, { modules: ['financialData'] })
+      .catch(() => null),
+  ]);
+
+  const fd = summary?.financialData;
+
+  return {
+    symbol: quote.symbol || symbol,
+    name: quote.longName || quote.shortName || symbol,
+    price: quote.regularMarketPrice ?? 0,
+    change: quote.regularMarketChange ?? 0,
+    changePct: quote.regularMarketChangePercent ?? 0,
+    pe: quote.forwardPE ?? quote.trailingPE ?? null,
+    marketCap: quote.marketCap ?? null,
+    revenueGrowth: fd?.revenueGrowth ?? null,
+    earningsGrowth: fd?.earningsGrowth ?? null,
+    profitMargin: fd?.profitMargins ?? null,
+    debtToEquity: fd?.debtToEquity ?? null,
+    week52High: quote.fiftyTwoWeekHigh ?? null,
+    week52Low: quote.fiftyTwoWeekLow ?? null,
+    divYield: quote.dividendYield ?? null,
+    beta: quote.beta ?? null,
   };
 }

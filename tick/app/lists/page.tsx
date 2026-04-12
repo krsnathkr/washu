@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, ListPlus, PencilLine } from "lucide-react";
+import { ArrowLeft, ListPlus, PencilLine, X } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { WatchlistItem } from "@/components/WatchlistItem";
+import { DraggableWatchlistItem } from "@/components/DraggableWatchlistItem";
+import { CompareOverlay } from "@/components/CompareOverlay";
 import { ListEditorDialog } from "@/components/ListEditorDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
   useLists,
   WATCHLIST_ID,
 } from "@/lib/lists";
+import { useCompare } from "@/lib/useCompare";
 
 type EditorState =
   | { mode: "create" }
@@ -22,6 +24,24 @@ type EditorState =
 export default function ListsPage() {
   const listsStore = useLists();
   const [editorState, setEditorState] = useState<EditorState>(null);
+  const compare = useCompare();
+  const rectMap = useRef<Map<string, DOMRect>>(new Map());
+
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
+
+  const registerRect = useCallback(
+    (symbol: string, el: HTMLDivElement | null) => {
+      if (el) {
+        rectMap.current.set(symbol, el.getBoundingClientRect());
+      } else {
+        rectMap.current.delete(symbol);
+      }
+    },
+    [],
+  );
 
   const openCreateEditor = () => {
     setEditorState({ mode: "create" });
@@ -130,7 +150,7 @@ export default function ListsPage() {
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
                     {list.entries.map((entry) => (
-                      <WatchlistItem
+                      <DraggableWatchlistItem
                         key={`${list.id}-${entry.symbol}`}
                         entry={entry}
                         onRemove={(symbol) => {
@@ -139,6 +159,16 @@ export default function ListsPage() {
                             toast(`Removed ${symbol} from ${list.name}`);
                           }
                         }}
+                        isDropTarget={compare.hoveredSymbol === entry.symbol}
+                        isSelected={compare.selectedSymbol === entry.symbol}
+                        onDragOverSymbol={compare.setHovered}
+                        onDropOnSymbol={(targetSymbol, draggedSymbol) => {
+                          compare.startCompare(draggedSymbol, targetSymbol);
+                        }}
+                        onTapSelect={() => compare.selectForCompare(entry.symbol)}
+                        registerRect={registerRect}
+                        rectMap={rectMap}
+                        isTouchDevice={isTouchDevice}
                       />
                     ))}
                   </div>
@@ -179,6 +209,34 @@ export default function ListsPage() {
             setEditorState(null);
           }}
         />
+      )}
+
+      {/* Compare overlay */}
+      {(compare.loading || compare.compareData) && (
+        <CompareOverlay
+          data={compare.compareData}
+          verdict={compare.verdict}
+          loading={compare.loading}
+          verdictLoading={compare.verdictLoading}
+          onClose={compare.clearCompare}
+        />
+      )}
+
+      {/* Mobile selection pill */}
+      {compare.selectedSymbol && !compare.compareData && !compare.loading && (
+        <div className="fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full border border-border/60 bg-card px-4 py-2 shadow-xl">
+          <span className="text-sm font-medium">
+            <span className="font-bold text-primary">{compare.selectedSymbol}</span>
+            {" "}selected — tap another to compare
+          </span>
+          <button
+            onClick={compare.clearCompare}
+            className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Cancel selection"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
       )}
     </main>
   );

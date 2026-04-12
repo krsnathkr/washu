@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { createChart, IChartApi, ISeriesApi, LineSeries } from "lightweight-charts";
 import { ChartPoint } from "@/lib/types";
 
-type RangeTab = "1D" | "1W" | "1M" | "1Y";
+type RangeTab = "1W" | "1M" | "1Y";
 
 export function ChartPanel({ symbol, initialChart }: { symbol: string, initialChart: ChartPoint[] | null }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartInstanceRef = useRef<IChartApi | null>(null);
   const lineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const latestRequestRef = useRef(0);
 
   const [activeRange, setActiveRange] = useState<RangeTab>("1M");
   const [chartData, setChartData] = useState<ChartPoint[] | null>(initialChart);
@@ -20,25 +21,40 @@ export function ChartPanel({ symbol, initialChart }: { symbol: string, initialCh
   }, [symbol, initialChart]);
 
   useEffect(() => {
-    if (!symbol || activeRange === "1M") return; // initial is already 1M
-    
-    let isMounted = true;
+    if (!symbol) return;
+
+    if (activeRange === "1M" && initialChart) {
+      setChartData(initialChart);
+      setLoading(false);
+      return;
+    }
+
+    const requestId = ++latestRequestRef.current;
+    const controller = new AbortController();
     setLoading(true);
 
-    fetch(`/api/stock/${symbol}?range=${activeRange}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!isMounted) return;
-        setChartData(data.chart);
+    fetch(`/api/stock/${symbol}?range=${activeRange}`, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load ${activeRange} chart for ${symbol}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (requestId !== latestRequestRef.current) return;
+        setChartData(data.chart ?? null);
         setLoading(false);
       })
       .catch((err) => {
+        if (controller.signal.aborted) return;
         console.error(err);
-        if (isMounted) setLoading(false);
+        if (requestId === latestRequestRef.current) {
+          setLoading(false);
+        }
       });
 
-    return () => { isMounted = false; };
-  }, [symbol, activeRange]);
+    return () => controller.abort();
+  }, [symbol, activeRange, initialChart]);
 
   useEffect(() => {
     if (!chartContainerRef.current || !chartData) return;
@@ -102,7 +118,7 @@ export function ChartPanel({ symbol, initialChart }: { symbol: string, initialCh
     };
   }, [chartData]); // Re-render chart on data change
 
-  const ranges: RangeTab[] = ["1D", "1W", "1M", "1Y"];
+  const ranges: RangeTab[] = ["1W", "1M", "1Y"];
 
   return (
     <div className="flex flex-col gap-2 pt-2 pb-4">

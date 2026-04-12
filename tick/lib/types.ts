@@ -73,3 +73,42 @@ export interface UserList {
 
 /** Backwards-compatible alias for the original single-list model */
 export type WatchlistEntry = SavedStockEntry;
+
+/* ────────────────────────────────────────────────────
+   Stock comparison types
+   ──────────────────────────────────────────────────── */
+
+/** Extended financial data used in side-by-side comparisons */
+export interface CompareFinancials {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePct: number;
+  pe: number | null;
+  marketCap: number | null;
+  revenueGrowth: number | null;
+  earningsGrowth: number | null;
+  profitMargin: number | null;
+  debtToEquity: number | null;
+  week52High: number | null;
+  week52Low: number | null;
+  divYield: number | null;
+  beta: number | null;
+}
+
+/** Pair of stocks returned by /api/compare */
+export interface CompareData {
+  stockA: CompareFinancials;
+  stockB: CompareFinancials;
+}
+
+/** AI comparison verdict returned by /api/gemini/compare */
+export interface CompareVerdict {
+  winner: string;
+  confidence: "High" | "Medium" | "Low";
+  summary: string;
+  revenueAnalysis: string;
+  valuationAnalysis: string;
+  risks: string;
+}
