@@ -26,8 +26,19 @@ export default function TickerPage({ params }: { params: Promise<{ symbol: strin
         </div>
       </div>
 
-      <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-24 relative overflow-hidden h-full">
-         <div className="w-full max-w-md h-full min-h-[600px] flex items-stretch justify-center relative">
+      <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-28 sm:pb-32 relative overflow-hidden h-full">
+         <div
+           aria-hidden="true"
+           className="pointer-events-none absolute inset-0"
+           style={{
+             backgroundImage:
+               `repeating-linear-gradient(0deg, var(--border) 0 0.5px, transparent 0.5px 100%),
+                repeating-linear-gradient(90deg, var(--border) 0 0.5px, transparent 0.5px 100%)`,
+             backgroundSize: "48px 48px",
+             opacity: 0.3,
+           }}
+         />
+         <div className="w-full max-w-md md:max-w-5xl h-full min-h-[600px] md:h-[85vh] flex items-stretch justify-center relative">
             <StockCard symbol={resolvedSymbol} />
          </div>
       </div>

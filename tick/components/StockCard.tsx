@@ -61,7 +61,7 @@ export const StockCard = memo(function StockCard({ symbol }: { symbol: string })
         </div>
 
         {/* The Panels */}
-        <ChartPanel symbol={symbol} initialChart={sData?.chart || null} />
+        <ChartPanel key={symbol} symbol={symbol} initialChart={sData?.chart || null} />
         
         {sData?.summary && (
           <div className="px-5 py-3 border-y border-border/50">

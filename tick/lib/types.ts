@@ -11,6 +11,11 @@ export interface ChartPoint {
   time: number | string;
   /** Price at this point in time */
   value: number;
+  /** Optional OHLC values for candlestick rendering */
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
 }
 
 /** Snapshot of a stock's current data returned by /api/stock/[symbol] */

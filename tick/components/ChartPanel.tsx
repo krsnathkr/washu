@@ -1,37 +1,59 @@
-import { memo, useEffect, useRef, useState } from "react";
-import { createChart, IChartApi, ISeriesApi, LineSeries } from "lightweight-charts";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CandlestickSeries,
+  createChart,
+  LineSeries,
+  UTCTimestamp,
+} from "lightweight-charts";
 import { ChartPoint } from "@/lib/types";
 
-type RangeTab = "1W" | "1M" | "1Y";
+type RangeTab = "1D" | "1W" | "1M" | "1Y";
+type ChartMode = "line" | "candlestick";
+type RemoteRange = Exclude<RangeTab, "1M">;
+type RemoteCharts = Partial<Record<RemoteRange, ChartPoint[] | null>>;
+
+function hasCandlestickValues(point: ChartPoint): point is ChartPoint & {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+} {
+  return (
+    typeof point.open === "number" &&
+    typeof point.high === "number" &&
+    typeof point.low === "number" &&
+    typeof point.close === "number"
+  );
+}
 
 export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { symbol: string, initialChart: ChartPoint[] | null }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartInstanceRef = useRef<IChartApi | null>(null);
-  const lineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const latestRequestRef = useRef(0);
 
   const [activeRange, setActiveRange] = useState<RangeTab>("1M");
-  const [chartData, setChartData] = useState<ChartPoint[] | null>(initialChart);
+  const [chartMode, setChartMode] = useState<ChartMode>("line");
+  const [remoteCharts, setRemoteCharts] = useState<RemoteCharts>({});
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // If symbol changes, reset
-    setActiveRange("1M");
-    setChartData(initialChart);
-  }, [symbol, initialChart]);
+  const chartData =
+    activeRange === "1M" ? initialChart : (remoteCharts[activeRange] ?? null);
+  const hasChartData = Boolean(chartData?.length);
+  const isEmptyChart = chartData !== null && chartData.length === 0;
+
+  const candlestickData = useMemo(
+    () => chartData?.filter(hasCandlestickValues) ?? [],
+    [chartData]
+  );
+  const hasCandlestickData = candlestickData.length > 0;
+  const effectiveChartMode = chartMode === "candlestick" && hasCandlestickData ? "candlestick" : "line";
 
   useEffect(() => {
-    if (!symbol) return;
-
-    if (activeRange === "1M" && initialChart) {
-      setChartData(initialChart);
-      setLoading(false);
+    if (!symbol || activeRange === "1M" || remoteCharts[activeRange] !== undefined) {
       return;
     }
 
     const requestId = ++latestRequestRef.current;
     const controller = new AbortController();
-    setLoading(true);
 
     fetch(`/api/stock/${symbol}?range=${activeRange}`, { signal: controller.signal })
       .then(async (res) => {
@@ -42,7 +64,10 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
       })
       .then((data) => {
         if (requestId !== latestRequestRef.current) return;
-        setChartData(data.chart ?? null);
+        setRemoteCharts((prev) => ({
+          ...prev,
+          [activeRange]: data.chart ?? null,
+        }));
         setLoading(false);
       })
       .catch((err) => {
@@ -54,19 +79,18 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
       });
 
     return () => controller.abort();
-  }, [symbol, activeRange, initialChart]);
+  }, [activeRange, remoteCharts, symbol]);
 
   useEffect(() => {
-    if (!chartContainerRef.current || !chartData) return;
+    const container = chartContainerRef.current;
+    if (!container || !hasChartData) return;
+    const currentChartData = chartData ?? [];
 
-    // Get styles from CSS vars roughly
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-1').replace('oklch(', '').replace(')', '').split(' ').join(', ');
-    // Lightweight charts prefers rgb/hex, oklch fallback might be tricky but we can just use a standard green if unable to parse.
-    // Actually tailwind oklch variables aren't directly parsed by lightweight-charts.
-    // Let's rely on a solid hex or rgb
-    const lineColor = "#22c55e"; // A standard green fallback
+    const lineColor = "#22c55e";
 
-    const chart = createChart(chartContainerRef.current, {
+    const chart = createChart(container, {
+      width: container.clientWidth,
+      height: container.clientHeight,
       layout: {
         background: { color: "transparent" },
         textColor: "#a1a1aa", // neutral-400
@@ -86,44 +110,84 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
       handleScale: false,
     });
 
-    chartInstanceRef.current = chart;
+    if (effectiveChartMode === "candlestick") {
+      const candlestickSeries = chart.addSeries(CandlestickSeries, {
+        upColor: "#22c55e",
+        downColor: "#ef4444",
+        wickUpColor: "#22c55e",
+        wickDownColor: "#ef4444",
+        borderVisible: false,
+      });
 
-    const lineSeries = chart.addSeries(LineSeries, {
-      color: lineColor,
-      lineWidth: 2,
-      crosshairMarkerVisible: true,
-    });
-    lineSeriesRef.current = lineSeries;
+      candlestickSeries.setData(
+        candlestickData.map((point) => ({
+          time: point.time as UTCTimestamp,
+          open: point.open,
+          high: point.high,
+          low: point.low,
+          close: point.close,
+        }))
+      );
+    } else {
+      const lineSeries = chart.addSeries(LineSeries, {
+        color: lineColor,
+        lineWidth: 2,
+        crosshairMarkerVisible: true,
+      });
 
-    // Type casting because lightweight charts handles string dates well, but its exact type depends:
-    lineSeries.setData(chartData.map(d => ({ 
-      time: d.time as any, 
-      value: d.value 
-    })));
+      lineSeries.setData(
+        currentChartData.map((point) => ({
+          time: point.time as UTCTimestamp,
+          value: point.value,
+        }))
+      );
+    }
 
     chart.timeScale().fitContent();
 
     // Make chart responsive
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
+      chart.applyOptions({
+        width: container.clientWidth,
+        height: container.clientHeight,
+      });
     };
     window.addEventListener("resize", handleResize);
 
     return () => {
       window.removeEventListener("resize", handleResize);
       chart.remove();
-      chartInstanceRef.current = null;
     };
-  }, [chartData]); // Re-render chart on data change
+  }, [candlestickData, chartData, effectiveChartMode, hasChartData]); // Re-render chart on data or mode change
 
-  const ranges: RangeTab[] = ["1W", "1M", "1Y"];
+  const ranges: RangeTab[] = ["1D", "1W", "1M", "1Y"];
+  const modes: Array<{ label: string; value: ChartMode; disabled?: boolean }> = [
+    { label: "Line", value: "line" },
+    { label: "Candles", value: "candlestick", disabled: !hasCandlestickData },
+  ];
 
   return (
     <div className="flex flex-col gap-2 pt-2 pb-4">
       {/* Chart Canvas */}
       <div className="h-48 w-full relative" ref={chartContainerRef}>
+        <div className="absolute right-2 top-2 z-20 flex items-center gap-1 rounded-full border border-border/60 bg-background/75 p-1 backdrop-blur-sm">
+          {modes.map((mode) => (
+            <button
+              key={mode.value}
+              onClick={() => !mode.disabled && setChartMode(mode.value)}
+              disabled={mode.disabled}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                effectiveChartMode === mode.value
+                  ? "bg-secondary text-secondary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted"
+              } ${mode.disabled ? "cursor-not-allowed opacity-50 hover:bg-transparent" : ""}`}
+              title={mode.disabled ? "Candlestick data isn't available for this chart." : undefined}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+
         {loading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
             <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider animate-pulse">Loading...</span>
@@ -134,14 +198,24 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
             <div className="h-full w-full bg-muted animate-pulse rounded" />
           </div>
         )}
+        {(isEmptyChart && !loading) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              No chart data for {activeRange}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
-      <div className="flex justify-center gap-2 mt-2">
+      <div className="mt-2 flex justify-center gap-2">
         {ranges.map((range) => (
           <button
             key={range}
-            onClick={() => setActiveRange(range)}
+            onClick={() => {
+              setActiveRange(range);
+              setLoading(range === "1M" ? false : remoteCharts[range] === undefined);
+            }}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
               activeRange === range
                 ? "bg-primary text-primary-foreground shadow-sm"
