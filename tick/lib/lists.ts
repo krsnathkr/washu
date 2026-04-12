@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import type { SavedStockEntry, UserList } from "./types";
 
 export const LISTS_STORAGE_KEY = "tick:lists";
@@ -434,7 +434,7 @@ export function useLists() {
     );
   };
 
-  return {
+  return useMemo(() => ({
     lists,
     createList,
     updateList,
@@ -443,5 +443,5 @@ export function useLists() {
     toggleInList,
     isInList,
     getListsForSymbol,
-  };
+  }), [lists]);
 }

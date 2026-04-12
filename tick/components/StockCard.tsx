@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useStockCard } from "@/lib/useStockCard";
 import { ChartPanel } from "./ChartPanel";
 import { StatsGrid } from "./StatsGrid";
@@ -7,7 +8,7 @@ import { NewsPanel } from "./NewsPanel";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { StockListMenu } from "./StockListMenu";
 
-export function StockCard({ symbol }: { symbol: string }) {
+export const StockCard = memo(function StockCard({ symbol }: { symbol: string }) {
   const { stock, news, bullbear, sentiment } = useStockCard(symbol);
 
   // Header helpers
@@ -20,7 +21,7 @@ export function StockCard({ symbol }: { symbol: string }) {
   const ChangeIcon = isUp === true ? TrendingUp : isUp === false ? TrendingDown : Minus;
 
   return (
-    <div className="w-full h-full max-w-5xl bg-card text-card-foreground rounded-3xl shadow-xl border border-border/50 overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="w-full h-full max-w-5xl bg-card text-card-foreground rounded-3xl shadow-xl border border-border/50 overflow-hidden flex flex-col max-h-[85vh]" style={{ contain: "layout style paint" }}>
       {/* Scrollable Container inside the card */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar">
         
@@ -78,4 +79,4 @@ export function StockCard({ symbol }: { symbol: string }) {
       </div>
     </div>
   );
-}
+});

@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { StockSnapshot } from "@/lib/types";
 
-export function StatsGrid({ stats }: { stats: StockSnapshot | null }) {
+export const StatsGrid = memo(function StatsGrid({ stats }: { stats: StockSnapshot | null }) {
   if (!stats) {
     return (
       <div className="grid grid-cols-3 gap-4 px-4 py-2">
@@ -41,4 +42,4 @@ export function StatsGrid({ stats }: { stats: StockSnapshot | null }) {
       ))}
     </div>
   );
-}
+});

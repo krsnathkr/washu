@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useState } from "react";
-import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
+import { memo, ReactNode, useEffect, useEffectEvent, useRef } from "react";
+import { motion, PanInfo, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import { ArrowLeft, Heart, Undo2 } from "lucide-react";
 
 interface SwipeDeckProps {
@@ -10,34 +10,48 @@ interface SwipeDeckProps {
   undoDisabled?: boolean;
 }
 
-export function SwipeDeck({
+export const SwipeDeck = memo(function SwipeDeck({
   children,
   onSwipeLeft,
   onSwipeRight,
   onUndo,
   undoDisabled = false,
 }: SwipeDeckProps) {
-  const [exitX, setExitX] = useState<number>(0);
   const x = useMotionValue(0);
   const controls = useAnimation();
+  const swipingRef = useRef(false);
+  const onSwipeLeftEvent = useEffectEvent(onSwipeLeft);
+  const onSwipeRightEvent = useEffectEvent(onSwipeRight);
 
   // Rotate slightly as you drag
   const rotate = useTransform(x, [-200, 200], [-10, 10]);
-  // Fade out slightly at the edges
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
+  // Fade a bit more as the swipe commits so the card feels lighter at the edges.
+  const opacity = useTransform(x, [-220, -120, 0, 120, 220], [0.62, 0.82, 1, 0.82, 0.62]);
+  const leftTintOpacity = useTransform(x, [-220, -80, 0], [0.24, 0.1, 0]);
+  const rightTintOpacity = useTransform(x, [0, 80, 220], [0, 0.1, 0.24]);
 
-  const triggerSwipe = (direction: "left" | "right") => {
-    setExitX(direction === "right" ? 300 : -300);
+  const triggerSwipe = useEffectEvent(async (direction: "left" | "right") => {
+    if (swipingRef.current) return; // guard against double-fires
+    swipingRef.current = true;
 
+    const exitTarget = direction === "right" ? 300 : -300;
+
+    // Animate card off-screen imperatively — no setState, no re-render
+    await controls.start({
+      x: exitTarget,
+      opacity: 0,
+      transition: { duration: 0.2 },
+    });
+
+    // Fire the callback *after* the animation completes
     if (direction === "right") {
-      onSwipeRight();
-      return;
+      onSwipeRightEvent();
+    } else {
+      onSwipeLeftEvent();
     }
+  });
 
-    onSwipeLeft();
-  };
-
-  const handleDragEnd = (event: any, info: any) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     if (info.offset.x > threshold) {
       triggerSwipe("right");
@@ -49,34 +63,42 @@ export function SwipeDeck({
     }
   };
 
+  // Keyboard handler — attaches once thanks to refs
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if inside an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      if (e.key === "ArrowLeft") {
-        triggerSwipe("left");
-      } else if (e.key === "ArrowRight") {
-        triggerSwipe("right");
-      }
+      if (e.key === "ArrowLeft") triggerSwipe("left");
+      else if (e.key === "ArrowRight") triggerSwipe("right");
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onSwipeLeft, onSwipeRight]);
+  }, []);
 
   return (
     <div className="relative w-full max-w-5xl h-[85vh] perspective-[1000px] flex items-center justify-center">
       <motion.div
         drag="x"
-        dragConstraints={{ left: 0, right: 0 }} /* lets it be freely dragged but origin is 0 */
-        dragElastic={0.8}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.5}
         onDragEnd={handleDragEnd}
         animate={controls}
-        style={{ x, rotate, opacity }}
-        exit={{ x: exitX, opacity: 0, transition: { duration: 0.2 } }}
-        className="absolute inset-0 cursor-grab active:cursor-grabbing flex items-center justify-center"
+        style={{ x, rotate, opacity, backfaceVisibility: "hidden" }}
+        exit={{}}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing flex items-center justify-center will-change-transform"
       >
-        {children}
+        <div className="relative h-full w-full max-w-5xl overflow-hidden rounded-3xl">
+          {children}
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-rose-500"
+            style={{ opacity: leftTintOpacity }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-emerald-500"
+            style={{ opacity: rightTintOpacity }}
+          />
+        </div>
         <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 translate-y-1/2 items-center gap-3 sm:gap-4">
           <button
             type="button"
@@ -110,4 +132,4 @@ export function SwipeDeck({
       </motion.div>
     </div>
   );
-}
+});

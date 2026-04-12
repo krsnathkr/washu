@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { StockCard } from "@/components/StockCard";
 import { SwipeDeck } from "@/components/SwipeDeck";
@@ -26,6 +26,22 @@ export default function Home() {
   const swipeHistoryRef = useRef<SwipeHistoryEntry[]>([]);
   const nextSymbolRequestRef = useRef(0);
 
+  const activeSymbol = symbols[0];
+  const nextSymbol = symbols[1];
+  const canUndo = swipeHistory.length > 0;
+
+  const { stock: activeStock } = useStockCard(activeSymbol || null);
+  // Warm the symbol-scoped cache for the next card without touching the active card's data.
+  useStockCard(nextSymbol || null);
+
+  // Refs to keep callbacks stable (read latest values without re-creating closures)
+  const symbolsRef = useRef(symbols);
+  symbolsRef.current = symbols;
+  const listsStoreRef = useRef(listsStore);
+  listsStoreRef.current = listsStore;
+  const activeStockRef = useRef(activeStock);
+  activeStockRef.current = activeStock;
+
   // Fetch the first 2 symbols to start the loop
   useEffect(() => {
     let isMounted = true;
@@ -33,7 +49,7 @@ export default function Home() {
       try {
         const res1 = await fetch("/api/discover/next");
         const data1 = await res1.json();
-        
+
         const res2 = await fetch(`/api/discover/next?exclude=${data1.symbol}`);
         const data2 = await res2.json();
 
@@ -50,11 +66,7 @@ export default function Home() {
     return () => { isMounted = false; };
   }, []);
 
-  const activeSymbol = symbols[0];
-  const nextSymbol = symbols[1];
-  const canUndo = swipeHistory.length > 0;
-
-  const undoLastSwipe = (showToast = true) => {
+  const undoLastSwipe = useCallback((showToast = true) => {
     const lastSwipe = swipeHistoryRef.current.at(-1);
     if (!lastSwipe) {
       if (showToast) {
@@ -69,26 +81,26 @@ export default function Home() {
     setSymbols(lastSwipe.previousSymbols);
 
     if (lastSwipe.addedToWatchlist) {
-      listsStore.removeFromList(WATCHLIST_ID, lastSwipe.symbol);
+      listsStoreRef.current.removeFromList(WATCHLIST_ID, lastSwipe.symbol);
     }
 
     if (showToast) {
       toast.success(`Restored ${lastSwipe.symbol}`);
     }
-  };
+  }, []);
 
-  const handleSwipe = async (dir: "left" | "right") => {
-    if (!activeSymbol) return;
+  const handleSwipe = useCallback(async (dir: "left" | "right") => {
+    const currentSymbol = symbolsRef.current[0];
+    if (!currentSymbol) return;
 
-    const currentSymbol = activeSymbol;
-    const previousSymbols = [...symbols];
+    const previousSymbols = [...symbolsRef.current];
     let addedToWatchlist = false;
 
     if (dir === "right") {
-      addedToWatchlist = listsStore.addToList(
+      addedToWatchlist = listsStoreRef.current.addToList(
         WATCHLIST_ID,
         currentSymbol,
-        activeStock?.data?.name || currentSymbol
+        activeStockRef.current?.data?.name || currentSymbol
       );
 
       if (addedToWatchlist) {
@@ -142,11 +154,10 @@ export default function Home() {
       .catch((error) => {
         console.error("Failed to fetch next symbol", error);
       });
-  };
+  }, [undoLastSwipe]);
 
-  const { stock: activeStock } = useStockCard(activeSymbol || null);
-  // Warm the symbol-scoped cache for the next card without touching the active card's data.
-  useStockCard(nextSymbol || null);
+  const handleSwipeLeft = useCallback(() => handleSwipe("left"), [handleSwipe]);
+  const handleSwipeRight = useCallback(() => handleSwipe("right"), [handleSwipe]);
 
   if (loadingInitial) {
     return (
@@ -174,9 +185,9 @@ export default function Home() {
             {activeSymbol && (
               <SwipeDeck
                 key={activeSymbol}
-                onSwipeLeft={() => handleSwipe("left")}
-                onSwipeRight={() => handleSwipe("right")}
-                onUndo={() => undoLastSwipe()}
+                onSwipeLeft={handleSwipeLeft}
+                onSwipeRight={handleSwipeRight}
+                onUndo={undoLastSwipe}
                 undoDisabled={!canUndo}
               >
                 <StockCard symbol={activeSymbol} />

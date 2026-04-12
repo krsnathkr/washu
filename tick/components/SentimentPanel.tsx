@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { SentimentSummary } from "@/lib/types";
 
-export function SentimentPanel({ data, loading }: { data: SentimentSummary | null; loading: boolean }) {
+export const SentimentPanel = memo(function SentimentPanel({ data, loading }: { data: SentimentSummary | null; loading: boolean }) {
   if (loading && !data) {
     return (
       <div className="flex flex-col gap-3 px-4 py-4 border-t border-border">
@@ -54,4 +55,4 @@ export function SentimentPanel({ data, loading }: { data: SentimentSummary | nul
       )}
     </div>
   );
-}
+});

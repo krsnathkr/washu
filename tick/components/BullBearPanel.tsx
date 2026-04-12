@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { BullBear } from "@/lib/types";
 import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
-export function BullBearPanel({ data, loading }: { data: BullBear | null; loading: boolean }) {
+export const BullBearPanel = memo(function BullBearPanel({ data, loading }: { data: BullBear | null; loading: boolean }) {
   if (loading && !data) {
     return (
       <div className="flex flex-col gap-4 px-4 py-4 border-t border-border">
@@ -71,4 +72,4 @@ export function BullBearPanel({ data, loading }: { data: BullBear | null; loadin
       )}
     </div>
   );
-}
+});

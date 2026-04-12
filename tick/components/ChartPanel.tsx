@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { createChart, IChartApi, ISeriesApi, LineSeries } from "lightweight-charts";
 import { ChartPoint } from "@/lib/types";
 
 type RangeTab = "1W" | "1M" | "1Y";
 
-export function ChartPanel({ symbol, initialChart }: { symbol: string, initialChart: ChartPoint[] | null }) {
+export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { symbol: string, initialChart: ChartPoint[] | null }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartInstanceRef = useRef<IChartApi | null>(null);
   const lineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
@@ -154,4 +154,4 @@ export function ChartPanel({ symbol, initialChart }: { symbol: string, initialCh
       </div>
     </div>
   );
-}
+});

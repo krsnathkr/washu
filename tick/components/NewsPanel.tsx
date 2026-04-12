@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { NewsItem } from "@/lib/types";
 import { ExternalLink } from "lucide-react";
 
-export function NewsPanel({ news, loading }: { news: NewsItem[] | null; loading: boolean }) {
+export const NewsPanel = memo(function NewsPanel({ news, loading }: { news: NewsItem[] | null; loading: boolean }) {
   if (loading && !news) {
     return (
       <div className="flex flex-col gap-4 px-4 py-4">
@@ -67,4 +68,4 @@ export function NewsPanel({ news, loading }: { news: NewsItem[] | null; loading:
       </div>
     </div>
   );
-}
+});
