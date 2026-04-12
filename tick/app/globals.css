@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ────────────────────────────────────────────────────
+   Tick – Tailwind v4 Theme (light + dark)
+   Primary accent: green (oklch)
+   Font: Outfit
+   ──────────────────────────────────────────────────── */
+
+:root {
+  /* ── backgrounds ── */
+  --background: oklch(0.9804 0.0044 247.8579);       /* off-white */
+  --foreground: oklch(0.1412 0.0050 285.7564);        /* near-black */
+
+  /* ── card ── */
+  --card: oklch(0.9961 0.0019 247.8579);
+  --card-foreground: oklch(0.1412 0.0050 285.7564);
+
+  /* ── popover ── */
+  --popover: oklch(0.9961 0.0019 247.8579);
+  --popover-foreground: oklch(0.1412 0.0050 285.7564);
+
+  /* ── primary (green accent) ── */
+  --primary: oklch(0.5568 0.1355 155.8120);
+  --primary-foreground: oklch(0.9804 0.0044 247.8579);
+
+  /* ── secondary ── */
+  --secondary: oklch(0.9294 0.0134 264.5478);
+  --secondary-foreground: oklch(0.2078 0.0081 285.7564);
+
+  /* ── muted ── */
+  --muted: oklch(0.9294 0.0134 264.5478);
+  --muted-foreground: oklch(0.5137 0.0178 264.5478);
+
+  /* ── accent ── */
+  --accent: oklch(0.9294 0.0134 264.5478);
+  --accent-foreground: oklch(0.2078 0.0081 285.7564);
+
+  /* ── destructive ── */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* ── borders & inputs ── */
+  --border: oklch(0.8706 0.0177 264.5478);
+  --input: oklch(0.8706 0.0177 264.5478);
+  --ring: oklch(0.5568 0.1355 155.8120);
+
+  /* ── chart palette ── */
+  --chart-1: oklch(0.5568 0.1355 155.8120);   /* primary green */
+  --chart-2: oklch(0.5412 0.1890 27.2066);    /* red */
+  --chart-3: oklch(0.6235 0.1450 254.5478);   /* blue */
+  --chart-4: oklch(0.6000 0.1200 60.0000);    /* amber */
+  --chart-5: oklch(0.5500 0.1300 320.0000);   /* purple */
+
+  /* ── misc ── */
+  --radius: 0.75rem;
+  --sidebar-background: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --sidebar: oklch(0.9700 0.0044 247.8579);
+}
+
+.dark {
+  /* ── backgrounds ── */
+  --background: oklch(0.1412 0.0050 285.7564);
+  --foreground: oklch(0.9804 0.0044 247.8579);
+
+  /* ── card ── */
+  --card: oklch(0.1804 0.0062 285.7564);
+  --card-foreground: oklch(0.9804 0.0044 247.8579);
+
+  /* ── popover ── */
+  --popover: oklch(0.1804 0.0062 285.7564);
+  --popover-foreground: oklch(0.9804 0.0044 247.8579);
+
+  /* ── primary (green accent – slightly brighter in dark) ── */
+  --primary: oklch(0.6200 0.1450 155.8120);
+  --primary-foreground: oklch(0.1412 0.0050 285.7564);
+
+  /* ── secondary ── */
+  --secondary: oklch(0.2353 0.0081 285.7564);
+  --secondary-foreground: oklch(0.9294 0.0134 264.5478);
+
+  /* ── muted ── */
+  --muted: oklch(0.2353 0.0081 285.7564);
+  --muted-foreground: oklch(0.5961 0.0178 264.5478);
+
+  /* ── accent ── */
+  --accent: oklch(0.2353 0.0081 285.7564);
+  --accent-foreground: oklch(0.9294 0.0134 264.5478);
+
+  /* ── destructive ── */
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* ── borders & inputs ── */
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.6200 0.1450 155.8120);
+
+  /* ── chart palette (brighter for dark bg) ── */
+  --chart-1: oklch(0.6500 0.1500 155.8120);
+  --chart-2: oklch(0.6000 0.1890 27.2066);
+  --chart-3: oklch(0.6800 0.1450 254.5478);
+  --chart-4: oklch(0.6500 0.1200 60.0000);
+  --chart-5: oklch(0.6200 0.1300 320.0000);
+
+  /* ── sidebar ── */
+  --sidebar: oklch(0.2050 0.0062 285.7564);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.6200 0.1450 155.8120);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.2353 0.0081 285.7564);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ── Tailwind v4 @theme inline: expose CSS vars as utilities ── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar: var(--sidebar);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --font-sans: var(--font-sans), "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans), "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Base styles ── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html {
+    @apply font-sans;
+  }
+}
