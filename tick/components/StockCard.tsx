@@ -2,6 +2,7 @@ import { memo } from "react";
 import { useStockCard } from "@/lib/useStockCard";
 import { ChartPanel } from "./ChartPanel";
 import { StatsGrid } from "./StatsGrid";
+import { AnalystRatingPanel } from "./AnalystRatingPanel";
 import { BullBearPanel } from "./BullBearPanel";
 import { SentimentPanel } from "./SentimentPanel";
 import { NewsPanel } from "./NewsPanel";
@@ -72,6 +73,11 @@ export const StockCard = memo(function StockCard({ symbol }: { symbol: string })
         )}
 
         <StatsGrid stats={sData} />
+        <AnalystRatingPanel
+          data={sData?.analystRating ?? null}
+          loading={showLoadingState}
+          currentPrice={sData?.price ?? null}
+        />
         <BullBearPanel data={isMismatchedStock ? null : bullbear.data} loading={isMismatchedStock || bullbear.loading} />
         <SentimentPanel data={isMismatchedStock ? null : sentiment.data} loading={isMismatchedStock || sentiment.loading} />
         <NewsPanel news={isMismatchedStock ? null : news.data} loading={isMismatchedStock || news.loading} />

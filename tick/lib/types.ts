@@ -18,6 +18,24 @@ export interface ChartPoint {
   close?: number;
 }
 
+/** Consensus analyst recommendation counts */
+export interface AnalystRecommendationBreakdown {
+  strongBuy: number;
+  buy: number;
+  hold: number;
+  sell: number;
+  strongSell: number;
+}
+
+/** Analyst recommendation snapshot returned by Yahoo */
+export interface AnalystRating {
+  recommendationKey: string | null;
+  recommendationMean: number | null;
+  numberOfAnalystOpinions: number | null;
+  targetMeanPrice: number | null;
+  distribution: AnalystRecommendationBreakdown | null;
+}
+
 /** Snapshot of a stock's current data returned by /api/stock/[symbol] */
 export interface StockSnapshot {
   symbol: string;
@@ -33,6 +51,7 @@ export interface StockSnapshot {
   beta: number | null;
   volume: number | null;
   summary: string;
+  analystRating: AnalystRating | null;
   chart: ChartPoint[];
 }
 
