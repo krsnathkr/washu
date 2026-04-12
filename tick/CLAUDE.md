@@ -35,14 +35,14 @@ There are no tests. No test runner is configured.
 | `reddit/[symbol]` | 1 h | Reddit JSON → Gemini |
 | `gemini/bullbear` | 6 h | Gemini (expensive call) |
 | `gemini/chat` | none | Gemini (per-question) |
-| `discover/next` | none | Static ticker universe (~150 tickers) |
+| `discover/next` | none | Static ticker universe (~500 tickers) |
 
 ### Key files
 
 - `lib/types.ts` — All shared TypeScript interfaces (`StockSnapshot`, `BullBear`, `SentimentSummary`, etc.)
 - `lib/useStockCard.ts` — Central hook: orchestrates parallel data fetching for a card, exposes per-section loading flags
 - `lib/cache.ts` — `getOrSet(key, ttlMs, fetcher)` used in every API route
-- `lib/tickerUniverse.ts` — Hard-coded ~150 US tickers; randomizes next pick, supports `exclude` list
+- `lib/tickerUniverse.ts` — Hard-coded ~500 tickers; randomizes next pick, supports `exclude` list
 - `lib/watchlist.ts` — `WatchlistContext` backed by localStorage
 
 ### Caching architecture

@@ -10,7 +10,7 @@ function getApiKey() {
   return apiKey;
 }
 
-async function geminiGenerate<T>(prompt: string, responseJsonSchema?: Record<string, unknown>): Promise<T | string> {
+async function geminiGenerate<T>(prompt: string, responseJsonSchema?: Record<string, unknown>, tools?: Record<string, unknown>[]): Promise<T | string> {
   const apiKey = getApiKey();
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
@@ -33,6 +33,7 @@ async function geminiGenerate<T>(prompt: string, responseJsonSchema?: Record<str
               responseJsonSchema,
             }
           : undefined,
+        ...(tools && { tools }),
       }),
     }
   );
@@ -47,7 +48,11 @@ async function geminiGenerate<T>(prompt: string, responseJsonSchema?: Record<str
     throw new Error(message);
   }
 
-  const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const parts = payload?.candidates?.[0]?.content?.parts;
+  const text = parts
+    ?.filter((p: any) => p.text)
+    .map((p: any) => p.text)
+    .join("") || undefined;
   if (!text) {
     throw new Error("Gemini returned an empty response");
   }
@@ -152,7 +157,7 @@ ${JSON.stringify({
 
 User's Question: ${question}
 
-Answer concisely, accurately, and informatively. Focus on the context provided where relevant. Keep it straight to the point without excessive pleasantries.`;
+Answer concisely, accurately, and informatively. Use the stock data above and web search results where relevant. Keep it straight to the point without excessive pleasantries.`;
 
-  return geminiGenerate<string>(prompt) as Promise<string>;
+  return geminiGenerate<string>(prompt, undefined, [{ googleSearch: {} }]) as Promise<string>;
 }

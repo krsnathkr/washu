@@ -56,8 +56,15 @@ Retail investors (especially first-timers) on web/mobile who want a low-effort w
 | ID | Feature |
 |---|---|
 | F12 | Undo last swipe |
-| F13 | Dark mode toggle |
 | F14 | Swipe counter / streak |
+
+### Extended Features (Completed)
+| ID | Feature | Source |
+|---|---|---|
+| F13 | Global Dark Mode Toggle (moved from P2) | next-themes |
+| F15 | Drag-to-compare gestural interaction on Lists | framer-motion |
+| F16 | Live Side-by-side Stock Comparison Overlay | Custom UI |
+| F17 | Resilient Error/Empty States for API Failures | React |
 
 ## 8. Pages
 1. **`/` — Discovery page**: a single centered card with the swipe deck, plus the Gemini chat bar pinned at the bottom of the viewport.
@@ -129,6 +136,7 @@ app/
 ├── watchlist/page.tsx                → Redirects to /lists
 ├── ticker/[symbol]/page.tsx          → (optional) deep-link card view
 └── api/
+    ├── compare/route.ts              → Compare financials between two symbols
     ├── stock/[symbol]/route.ts       → yahoo-finance2 quote + summary + chart
     ├── news/[symbol]/route.ts        → NewsAPI proxy + cache
     ├── reddit/[symbol]/route.ts      → Reddit JSON fetch + Gemini sentiment
@@ -147,7 +155,10 @@ components/
 ├── NewsPanel.tsx
 ├── SentimentPanel.tsx
 ├── ChatBar.tsx                       → Fixed bottom Gemini chat
-└── WatchlistItem.tsx
+├── WatchlistItem.tsx
+├── DraggableWatchlistItem.tsx        → Framer-motion drag bounds for compare
+├── CompareOverlay.tsx                → Side-by-side metric overlay
+└── ThemeToggle.tsx                   → Global dark mode toggle switch
 
 lib/
 ├── yahoo.ts                          → yahoo-finance2 wrapper
@@ -157,6 +168,8 @@ lib/
 ├── tickerUniverse.ts                 → ~150 curated US tickers + next-ticker logic
 ├── cache.ts                          → in-memory TTL cache (server)
 ├── lists.ts                          → generalized localStorage lists store + legacy migration
+├── useCompare.ts                     → Hook for cross-stock comparisons
+├── useStockCard.ts                   → Parallel data-fetching hook for cards
 ├── watchlist.ts                      → compatibility wrapper around the built-in Watchlist
 └── types.ts
 ```
