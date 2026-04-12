@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ListPlus, PencilLine, X } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { TickWordmark } from "@/components/TickWordmark";
 import { DraggableWatchlistItem } from "@/components/DraggableWatchlistItem";
 import { CompareOverlay } from "@/components/CompareOverlay";
 import { ListEditorDialog } from "@/components/ListEditorDialog";
@@ -62,18 +63,21 @@ export default function ListsPage() {
     <main className="min-h-[100svh] bg-background px-4 py-4 [padding-top:calc(env(safe-area-inset-top)+1rem)] [padding-bottom:calc(env(safe-area-inset-bottom)+1rem)] md:px-8 md:py-8">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="rounded-full border border-border/50 bg-card p-2 transition-colors hover:bg-muted"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Lists</h1>
-              <p className="text-sm text-muted-foreground">
-                Watchlist stays built in, and custom lists live here too.
-              </p>
+          <div className="flex flex-col items-start gap-3">
+            <TickWordmark />
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="rounded-full border border-border/50 bg-card p-2 transition-colors hover:bg-muted"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Lists</h1>
+                <p className="text-sm text-muted-foreground">
+                  Watchlist stays built in, and custom lists live here too.
+                </p>
+              </div>
             </div>
           </div>
 

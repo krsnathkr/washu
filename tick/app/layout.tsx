@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, Yellowtail } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -7,6 +7,12 @@ const outfit = Outfit({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const yellowtail = Yellowtail({
+  variable: "--font-wordmark",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} h-full antialiased font-sans flex flex-col min-h-full`}>
+    <html
+      lang="en"
+      className={`${outfit.variable} ${yellowtail.variable} h-full min-h-full flex flex-col font-sans antialiased`}
+    >
       <body className="min-h-full flex flex-col flex-grow">
         {children}
         <Toaster />

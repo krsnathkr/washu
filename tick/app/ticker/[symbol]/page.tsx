@@ -5,6 +5,7 @@ import { StockCard } from "@/components/StockCard";
 import { ChatBar } from "@/components/ChatBar";
 import { useStockCard } from "@/lib/useStockCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { TickWordmark } from "@/components/TickWordmark";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -17,13 +18,16 @@ export default function TickerPage({ params }: { params: Promise<{ symbol: strin
     <main className="relative flex min-h-[100svh] flex-1 flex-col items-center overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 [padding-top:calc(env(safe-area-inset-top)+1rem)]">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
-          <Link
-            href="/lists"
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-3.5 py-2.5 text-foreground shadow-md transition-colors hover:bg-muted"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="pr-1 text-sm font-semibold">Back</span>
-          </Link>
+          <div className="pointer-events-auto flex items-center gap-3">
+            <TickWordmark />
+            <Link
+              href="/lists"
+              className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-3.5 py-2.5 text-foreground shadow-md transition-colors hover:bg-muted"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span className="pr-1 text-sm font-semibold">Back</span>
+            </Link>
+          </div>
           <div className="pointer-events-auto">
             <ThemeToggle />
           </div>

@@ -7,6 +7,7 @@ import { SwipeDeck } from "@/components/SwipeDeck";
 import { ChatBar } from "@/components/ChatBar";
 import { useStockCard } from "@/lib/useStockCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { TickWordmark } from "@/components/TickWordmark";
 import Link from "next/link";
 import { ListPlus } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
@@ -170,9 +171,12 @@ export default function Home() {
   return (
     <main className="relative flex min-h-[100svh] flex-1 flex-col items-center overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 [padding-top:calc(env(safe-area-inset-top)+1rem)]">
-        <div className="mx-auto flex w-full max-w-5xl justify-end">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
+          <div className="pointer-events-auto">
+            <TickWordmark />
+          </div>
           <div className="pointer-events-auto flex items-center gap-3">
-          <ThemeToggle />
+            <ThemeToggle />
             <Link
               href="/lists"
               className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-3.5 py-2.5 text-foreground shadow-md transition-colors hover:bg-muted"
