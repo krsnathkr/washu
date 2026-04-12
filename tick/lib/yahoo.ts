@@ -5,21 +5,6 @@ const yahooFinance = new YahooFinance();
 
 export type ChartRange = '1D' | '1W' | '1M' | '1Y';
 
-/** Annualized historical volatility from daily closing prices */
-function computeAnnualizedVol(chart: ChartPoint[]): number | null {
-  if (chart.length < 5) return null;
-  const returns: number[] = [];
-  for (let i = 1; i < chart.length; i++) {
-    const prev = chart[i - 1].value;
-    const curr = chart[i].value;
-    if (prev > 0 && curr > 0) returns.push(Math.log(curr / prev));
-  }
-  if (returns.length < 4) return null;
-  const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-  const variance = returns.reduce((a, r) => a + (r - mean) ** 2, 0) / (returns.length - 1);
-  return Math.sqrt(variance) * Math.sqrt(252);
-}
-
 export async function getStockSnapshot(symbol: string, range: ChartRange = '1M'): Promise<StockSnapshot> {
   const now = new Date();
   const day = 24 * 60 * 60 * 1000;
@@ -51,12 +36,6 @@ export async function getStockSnapshot(symbol: string, range: ChartRange = '1M')
       value: c.close as number
     }));
 
-  const annualVol = computeAnnualizedVol(chart);
-  const beta = quote.beta ?? null;
-  // Flag volatile when annualized vol ≥ 40%, or fall back to beta ≥ 1.8 if
-  // chart data is too sparse for a reliable vol calculation.
-  const volatile = annualVol !== null ? annualVol >= 0.40 : (beta !== null && beta >= 1.8);
-
   return {
     symbol: quote.symbol || symbol,
     name: quote.longName || quote.shortName || symbol,
@@ -68,11 +47,10 @@ export async function getStockSnapshot(symbol: string, range: ChartRange = '1M')
     week52High: quote.fiftyTwoWeekHigh ?? null,
     week52Low: quote.fiftyTwoWeekLow ?? null,
     divYield: quote.dividendYield ?? null,
-    beta,
+    beta: quote.beta ?? null,
     volume: quote.regularMarketVolume ?? null,
     summary: profile?.summaryProfile?.longBusinessSummary || 'No summary available.',
-    chart,
-    volatile,
+    chart
   };
 }
 

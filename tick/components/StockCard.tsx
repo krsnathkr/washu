@@ -5,7 +5,7 @@ import { StatsGrid } from "./StatsGrid";
 import { BullBearPanel } from "./BullBearPanel";
 import { SentimentPanel } from "./SentimentPanel";
 import { NewsPanel } from "./NewsPanel";
-import { TrendingUp, TrendingDown, Minus, TriangleAlert } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { StockListMenu } from "./StockListMenu";
 
 export const StockCard = memo(function StockCard({ symbol }: { symbol: string }) {
@@ -41,14 +41,7 @@ export const StockCard = memo(function StockCard({ symbol }: { symbol: string })
           ) : sData ? (
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-3xl font-bold tracking-tight">{sData.symbol}</h1>
-                  {sData.volatile && (
-                    <span title="High volatility — this stock has shown large price swings recently">
-                      <TriangleAlert className="w-5 h-5 text-yellow-500" />
-                    </span>
-                  )}
-                </div>
+                <h1 className="text-3xl font-bold tracking-tight">{sData.symbol}</h1>
                 <p className="text-sm text-muted-foreground line-clamp-1">{sData.name}</p>
               </div>
               <div className="flex items-start gap-3">
