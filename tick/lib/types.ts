@@ -102,13 +102,3 @@ export interface CompareData {
   stockA: CompareFinancials;
   stockB: CompareFinancials;
 }
-
-/** AI comparison verdict returned by /api/gemini/compare */
-export interface CompareVerdict {
-  winner: string;
-  confidence: "High" | "Medium" | "Low";
-  summary: string;
-  revenueAnalysis: string;
-  valuationAnalysis: string;
-  risks: string;
-}

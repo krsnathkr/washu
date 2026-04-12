@@ -1,4 +1,4 @@
-import { BullBear, SentimentSummary, CompareData, CompareVerdict } from './types';
+import { BullBear, SentimentSummary } from './types';
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 
@@ -126,62 +126,6 @@ ${JSON.stringify(posts, null, 2)}
   };
 
   return geminiGenerate<SentimentSummary>(prompt, schema) as Promise<SentimentSummary>;
-}
-
-export async function generateCompareVerdict(data: CompareData): Promise<CompareVerdict> {
-  const { stockA, stockB } = data;
-
-  const fmt = (s: typeof stockA) => `${s.symbol} (${s.name})
-- Price: $${s.price.toFixed(2)}, Change: ${s.changePct >= 0 ? '+' : ''}${(s.changePct * 100).toFixed(2)}%
-- P/E Ratio: ${s.pe ?? 'N/A'}, Market Cap: ${s.marketCap ? '$' + (s.marketCap / 1e9).toFixed(2) + 'B' : 'N/A'}
-- Revenue Growth: ${s.revenueGrowth != null ? (s.revenueGrowth * 100).toFixed(1) + '%' : 'N/A'}
-- Earnings Growth: ${s.earningsGrowth != null ? (s.earningsGrowth * 100).toFixed(1) + '%' : 'N/A'}
-- Profit Margin: ${s.profitMargin != null ? (s.profitMargin * 100).toFixed(1) + '%' : 'N/A'}
-- Debt/Equity: ${s.debtToEquity ?? 'N/A'}
-- Beta: ${s.beta ?? 'N/A'}, Dividend Yield: ${s.divYield != null ? (s.divYield * 100).toFixed(2) + '%' : 'N/A'}`;
-
-  const prompt = `Compare these two stocks and determine which is the better investment right now.
-
-Stock A: ${fmt(stockA)}
-
-Stock B: ${fmt(stockB)}
-
-Provide a clear verdict on which stock is better and why. Cover revenue growth comparison, valuation analysis (P/E and relative value), and key risks to consider. Be concise and decisive.`;
-
-  const schema = {
-    type: "object",
-    properties: {
-      winner: {
-        type: "string",
-        description: "Ticker symbol of the stock you consider the better pick"
-      },
-      confidence: {
-        type: "string",
-        enum: ["High", "Medium", "Low"],
-        description: "How confident you are in this pick"
-      },
-      summary: {
-        type: "string",
-        description: "2-3 sentence overall verdict"
-      },
-      revenueAnalysis: {
-        type: "string",
-        description: "1-2 sentence revenue growth comparison"
-      },
-      valuationAnalysis: {
-        type: "string",
-        description: "1-2 sentence P/E and valuation comparison"
-      },
-      risks: {
-        type: "string",
-        description: "1-2 sentence about key risks to consider"
-      }
-    },
-    required: ["winner", "confidence", "summary", "revenueAnalysis", "valuationAnalysis", "risks"],
-    additionalProperties: false,
-  };
-
-  return geminiGenerate<CompareVerdict>(prompt, schema) as Promise<CompareVerdict>;
 }
 
 export async function generateChatResponse(context: any, question: string): Promise<string> {

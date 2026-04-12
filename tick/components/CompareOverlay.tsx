@@ -2,16 +2,14 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { X, TrendingUp, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CompareData, CompareFinancials, CompareVerdict } from "@/lib/types";
+import { CompareData, CompareFinancials } from "@/lib/types";
 
 interface CompareOverlayProps {
   data: CompareData | null;
-  verdict: CompareVerdict | null;
   loading: boolean;
-  verdictLoading: boolean;
   onClose: () => void;
 }
 
@@ -103,23 +101,9 @@ function MetricsSkeleton() {
   );
 }
 
-function VerdictSkeleton() {
-  return (
-    <div className="space-y-3">
-      <div className="h-6 w-48 bg-muted animate-pulse rounded mx-auto" />
-      <div className="h-4 w-full bg-muted animate-pulse rounded" />
-      <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
-      <div className="h-4 w-full bg-muted animate-pulse rounded" />
-      <div className="h-4 w-4/5 bg-muted animate-pulse rounded" />
-    </div>
-  );
-}
-
 export function CompareOverlay({
   data,
-  verdict,
   loading,
-  verdictLoading,
   onClose,
 }: CompareOverlayProps) {
   React.useEffect(() => {
@@ -244,65 +228,6 @@ export function CompareOverlay({
                   })}
                 </div>
               ) : null}
-            </div>
-
-            {/* AI Verdict */}
-            <div className="rounded-2xl border border-border/60 bg-muted/30 p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <Sparkles className="size-4 text-primary" />
-                <h3 className="text-sm font-semibold">AI Verdict</h3>
-              </div>
-
-              {loading || verdictLoading ? (
-                <VerdictSkeleton />
-              ) : verdict ? (
-                <div className="space-y-4">
-                  <div className="flex flex-col items-center gap-1 text-center">
-                    <span className="text-lg font-bold text-primary">{verdict.winner}</span>
-                    <span className="text-xs text-muted-foreground">
-                      is the better pick
-                    </span>
-                    <span
-                      className={`mt-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                        verdict.confidence === "High"
-                          ? "bg-green-500/15 text-green-600"
-                          : verdict.confidence === "Medium"
-                            ? "bg-yellow-500/15 text-yellow-600"
-                            : "bg-red-500/15 text-red-500"
-                      }`}
-                    >
-                      {verdict.confidence} confidence
-                    </span>
-                  </div>
-
-                  <p className="text-sm leading-relaxed">{verdict.summary}</p>
-
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        <TrendingUp className="size-3" /> Revenue
-                      </div>
-                      <p className="text-muted-foreground">{verdict.revenueAnalysis}</p>
-                    </div>
-                    <div>
-                      <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        <TrendingDown className="size-3" /> Valuation
-                      </div>
-                      <p className="text-muted-foreground">{verdict.valuationAnalysis}</p>
-                    </div>
-                    <div>
-                      <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        ⚠️ Risks
-                      </div>
-                      <p className="text-muted-foreground">{verdict.risks}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-center text-sm text-muted-foreground">
-                  Could not load AI verdict.
-                </p>
-              )}
             </div>
 
             {/* Footer links */}

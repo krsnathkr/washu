@@ -215,9 +215,7 @@ export default function ListsPage() {
       {(compare.loading || compare.compareData) && (
         <CompareOverlay
           data={compare.compareData}
-          verdict={compare.verdict}
           loading={compare.loading}
-          verdictLoading={compare.verdictLoading}
           onClose={compare.clearCompare}
         />
       )}
