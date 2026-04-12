@@ -29,6 +29,8 @@ export interface StockSnapshot {
   volume: number | null;
   summary: string;
   chart: ChartPoint[];
+  /** True when annualized historical volatility ≥ 40% */
+  volatile: boolean;
 }
 
 /** A news article from NewsAPI */

@@ -39,6 +39,7 @@ export function DraggableWatchlistItem({
   isTouchDevice,
 }: DraggableWatchlistItemProps) {
   const dragOccurred = React.useRef(false);
+  const [isDragging, setIsDragging] = React.useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -77,6 +78,7 @@ export function DraggableWatchlistItem({
 
   const handleDragStart = () => {
     dragOccurred.current = false;
+    setIsDragging(true);
     // Snapshot all rects at drag start for stable hit-testing
     const map = rectMap.current;
     if (!map) return;
@@ -88,6 +90,7 @@ export function DraggableWatchlistItem({
   };
 
   const handleDragEnd = () => {
+    setIsDragging(false);
     onDragOverSymbol(null);
     // Check if we were hovering over a target
     const map = rectMap.current;
@@ -135,7 +138,11 @@ export function DraggableWatchlistItem({
   };
 
   return (
-    <div ref={elRef} data-stock-symbol={entry.symbol} className="relative">
+    <div
+      ref={elRef}
+      data-stock-symbol={entry.symbol}
+      className={`relative ${isDragging ? "z-50" : ""}`}
+    >
       {isTouchDevice ? (
         // Mobile: no drag, tap to select
         <div
@@ -171,7 +178,7 @@ export function DraggableWatchlistItem({
             boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
             pointerEvents: "none" as const,
           }}
-          className={`cursor-grab rounded-xl transition-shadow active:cursor-grabbing ${
+          className={`relative cursor-grab rounded-xl transition-shadow active:cursor-grabbing ${
             isDropTarget
               ? "ring-2 ring-primary shadow-lg shadow-primary/20"
               : ""
