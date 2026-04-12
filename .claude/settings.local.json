@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const {TICKER_UNIVERSE} = require\\('./lib/tickerUniverse.ts'\\); console.log\\(TICKER_UNIVERSE.length\\);\")",
+      "Bash(node -e ':*)",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npm run:*)"
+    ]
+  }
+}
