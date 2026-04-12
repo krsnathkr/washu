@@ -1,114 +1,158 @@
-import { GoogleGenerativeAI, Schema, SchemaType } from '@google/generative-ai';
 import { BullBear, SentimentSummary } from './types';
 
-function getClient() {
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY is not set');
   }
-  return new GoogleGenerativeAI(apiKey);
+  return apiKey;
+}
+
+async function geminiGenerate<T>(prompt: string, responseJsonSchema?: Record<string, unknown>): Promise<T | string> {
+  const apiKey = getApiKey();
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: responseJsonSchema
+          ? {
+              responseMimeType: "application/json",
+              responseJsonSchema,
+            }
+          : undefined,
+      }),
+    }
+  );
+
+  const payload = await response.json();
+
+  if (!response.ok) {
+    const message =
+      payload?.error?.message ||
+      payload?.error?.status ||
+      "Gemini API request failed";
+    throw new Error(message);
+  }
+
+  const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error("Gemini returned an empty response");
+  }
+
+  if (!responseJsonSchema) {
+    return text as string;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error("Gemini returned invalid JSON");
+  }
 }
 
 export async function generateBullBear(context: any): Promise<BullBear> {
-  const genAI = getClient();
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Fast and JSON-capable
-
   const prompt = `Analyze the following context for stock ${context.symbol || 'the provided stock'} and provide a concise bull case (3 points), a bear case (3 points), and a brief analyst summary paragraph.
 Context:
 ${JSON.stringify(context, null, 2)}
   `;
 
-  const schema: Schema = {
-    type: SchemaType.OBJECT,
+  const schema = {
+    type: "object",
     properties: {
       bull: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING },
+        type: "array",
+        items: { type: "string" },
+        minItems: 3,
+        maxItems: 3,
         description: "3 concise bullish points"
       },
       bear: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING },
+        type: "array",
+        items: { type: "string" },
+        minItems: 3,
+        maxItems: 3,
         description: "3 concise bearish points"
       },
       analyst: {
-        type: SchemaType.STRING,
+        type: "string",
         description: "1 paragraph summary of the overarching sentiment and outlook"
       }
     },
-    required: ["bull", "bear", "analyst"]
+    required: ["bull", "bear", "analyst"],
+    additionalProperties: false,
   };
 
-
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    }
-  });
-
-  return JSON.parse(result.response.text());
+  return geminiGenerate<BullBear>(prompt, schema) as Promise<BullBear>;
 }
 
 export async function generateSentimentSummary(posts: any[]): Promise<SentimentSummary> {
-  const genAI = getClient();
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
   const prompt = `Analyze these recent Reddit posts about a stock and determine the overall sentiment. 
 Return a label (Bullish, Bearish, or Mixed) and 3 short bullet points summarizing the community's main arguments or focus areas.
 Posts:
 ${JSON.stringify(posts, null, 2)}
   `;
 
-  const schema: Schema = {
-    type: SchemaType.OBJECT,
+  const schema = {
+    type: "object",
     properties: {
       label: {
-        type: SchemaType.STRING,
-        format: "enum",
+        type: "string",
         enum: ["Bullish", "Bearish", "Mixed"],
         description: "Overall sentiment label"
       },
       points: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING },
+        type: "array",
+        items: { type: "string" },
+        minItems: 3,
+        maxItems: 3,
         description: "3 short bullet points summarizing the community's sentiment"
       }
     },
-    required: ["label", "points"]
+    required: ["label", "points"],
+    additionalProperties: false,
   };
 
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: schema,
-    }
-  });
-
-  return JSON.parse(result.response.text());
+  return geminiGenerate<SentimentSummary>(prompt, schema) as Promise<SentimentSummary>;
 }
 
 export async function generateChatResponse(context: any, question: string): Promise<string> {
-  const genAI = getClient();
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const stats = typeof context.stats === "string"
+    ? (() => {
+        try {
+          return JSON.parse(context.stats);
+        } catch {
+          return {};
+        }
+      })()
+    : context.stats ?? {};
 
   const prompt = `You are a helpful financial assistant inside a stock discovery app called Tick.
 The user is viewing the stock ${context.symbol || ''} (${context.name || ''}).
 Here is the latest data context about the stock:
 ${JSON.stringify({
-  price: context.price,
-  changePct: context.changePct,
-  pe: context.pe,
-  summary: context.summary?.substring(0, 500) // snippet to save tokens
+  price: context.price ?? stats.price,
+  changePct: context.changePct ?? stats.changePct,
+  pe: context.pe ?? stats.pe,
+  marketCap: context.marketCap ?? stats.marketCap,
+  summary: (context.summary ?? stats.summary ?? "").substring(0, 500)
 }, null, 2)}
 
 User's Question: ${question}
 
 Answer concisely, accurately, and informatively. Focus on the context provided where relevant. Keep it straight to the point without excessive pleasantries.`;
 
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  return geminiGenerate<string>(prompt) as Promise<string>;
 }
-

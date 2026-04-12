@@ -185,14 +185,10 @@ This plan turns the PRD into ordered, picked-off-one-at-a-time tasks. Phases run
 
 ## Phase F — Stretch (only if time)
 
-### F1. Gemini-personalized next ticker
-- After 3+ swipes, ask Gemini for the next ticker based on the watchlist + skipped list. Fall back to random if it fails.
 
-### F2. `/ticker/[symbol]` deep-link route
+### F1. `/ticker/[symbol]` deep-link route
 - Same card layout as discovery, no swipe controls; for sharing.
 
-### F3. Swipe counter
-- "You've swiped 12 stocks" footer on the discovery page.
 
 ---
 
