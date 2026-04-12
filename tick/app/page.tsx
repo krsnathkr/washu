@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { StockCard } from "@/components/StockCard";
 import { SwipeDeck } from "@/components/SwipeDeck";
@@ -12,10 +12,19 @@ import { ListPlus } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { useLists, WATCHLIST_ID } from "@/lib/lists";
 
+type SwipeHistoryEntry = {
+  symbol: string;
+  previousSymbols: string[];
+  addedToWatchlist: boolean;
+};
+
 export default function Home() {
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
+  const [swipeHistory, setSwipeHistory] = useState<SwipeHistoryEntry[]>([]);
   const listsStore = useLists();
+  const swipeHistoryRef = useRef<SwipeHistoryEntry[]>([]);
+  const nextSymbolRequestRef = useRef(0);
 
   // Fetch the first 2 symbols to start the loop
   useEffect(() => {
@@ -43,38 +52,57 @@ export default function Home() {
 
   const activeSymbol = symbols[0];
   const nextSymbol = symbols[1];
+  const canUndo = swipeHistory.length > 0;
 
-  const undoSwipe = (symbol: string) => {
-    setSymbols(prev => [symbol, ...prev.slice(0, -1)]);
+  const undoLastSwipe = (showToast = true) => {
+    const lastSwipe = swipeHistoryRef.current.at(-1);
+    if (!lastSwipe) {
+      if (showToast) {
+        toast("Nothing to undo yet");
+      }
+      return;
+    }
+
+    nextSymbolRequestRef.current += 1;
+    swipeHistoryRef.current = swipeHistoryRef.current.slice(0, -1);
+    setSwipeHistory(swipeHistoryRef.current);
+    setSymbols(lastSwipe.previousSymbols);
+
+    if (lastSwipe.addedToWatchlist) {
+      listsStore.removeFromList(WATCHLIST_ID, lastSwipe.symbol);
+    }
+
+    if (showToast) {
+      toast.success(`Restored ${lastSwipe.symbol}`);
+    }
   };
 
   const handleSwipe = async (dir: "left" | "right") => {
     if (!activeSymbol) return;
 
     const currentSymbol = activeSymbol;
+    const previousSymbols = [...symbols];
+    let addedToWatchlist = false;
 
     if (dir === "right") {
-      const added = listsStore.addToList(
+      addedToWatchlist = listsStore.addToList(
         WATCHLIST_ID,
         currentSymbol,
         activeStock?.data?.name || currentSymbol
       );
 
-      if (added) {
+      if (addedToWatchlist) {
         toast.success(`Added ${currentSymbol} to Watchlist`, {
           action: {
             label: "Undo",
-            onClick: () => {
-              listsStore.removeFromList(WATCHLIST_ID, currentSymbol);
-              undoSwipe(currentSymbol);
-            },
+            onClick: () => undoLastSwipe(false),
           },
         });
       } else {
         toast(`${currentSymbol} is already in Watchlist`, {
           action: {
             label: "Undo swipe",
-            onClick: () => undoSwipe(currentSymbol),
+            onClick: () => undoLastSwipe(false),
           },
         });
       }
@@ -82,22 +110,37 @@ export default function Home() {
       toast(`Skipped ${currentSymbol}`, {
         action: {
           label: "Undo",
-          onClick: () => undoSwipe(currentSymbol),
+          onClick: () => undoLastSwipe(false),
         },
       });
     }
 
-    // Shift symbols
-    const exList = symbols.join(",");
+    const nextHistory = [
+      ...swipeHistoryRef.current,
+      {
+        symbol: currentSymbol,
+        previousSymbols,
+        addedToWatchlist,
+      },
+    ];
+    swipeHistoryRef.current = nextHistory;
+    setSwipeHistory(nextHistory);
+
+    const requestId = ++nextSymbolRequestRef.current;
+    const excludeList = previousSymbols.join(",");
+
     setSymbols(prev => prev.slice(1));
 
     // Fetch the new "next" symbol
-    fetch(`/api/discover/next?exclude=${exList}`)
+    fetch(`/api/discover/next?exclude=${excludeList}`)
       .then(r => r.json())
       .then(d => {
-        if (d.symbol) {
+        if (requestId === nextSymbolRequestRef.current && d.symbol) {
           setSymbols(prev => [...prev, d.symbol]);
         }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch next symbol", error);
       });
   };
 
@@ -126,13 +169,15 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-24 relative overflow-hidden absolute inset-0">
+      <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-28 sm:pb-32 relative overflow-hidden absolute inset-0">
          <AnimatePresence>
             {activeSymbol && (
               <SwipeDeck
                 key={activeSymbol}
                 onSwipeLeft={() => handleSwipe("left")}
                 onSwipeRight={() => handleSwipe("right")}
+                onUndo={() => undoLastSwipe()}
+                undoDisabled={!canUndo}
               >
                 <StockCard symbol={activeSymbol} />
               </SwipeDeck>

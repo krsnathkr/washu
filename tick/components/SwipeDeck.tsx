@@ -1,13 +1,22 @@
 import { ReactNode, useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
+import { ArrowLeft, Heart, Undo2 } from "lucide-react";
 
 interface SwipeDeckProps {
   children: ReactNode;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onUndo?: () => void;
+  undoDisabled?: boolean;
 }
 
-export function SwipeDeck({ children, onSwipeLeft, onSwipeRight }: SwipeDeckProps) {
+export function SwipeDeck({
+  children,
+  onSwipeLeft,
+  onSwipeRight,
+  onUndo,
+  undoDisabled = false,
+}: SwipeDeckProps) {
   const [exitX, setExitX] = useState<number>(0);
   const x = useMotionValue(0);
   const controls = useAnimation();
@@ -17,14 +26,23 @@ export function SwipeDeck({ children, onSwipeLeft, onSwipeRight }: SwipeDeckProp
   // Fade out slightly at the edges
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
 
+  const triggerSwipe = (direction: "left" | "right") => {
+    setExitX(direction === "right" ? 300 : -300);
+
+    if (direction === "right") {
+      onSwipeRight();
+      return;
+    }
+
+    onSwipeLeft();
+  };
+
   const handleDragEnd = (event: any, info: any) => {
     const threshold = 100;
     if (info.offset.x > threshold) {
-      setExitX(300);
-      onSwipeRight();
+      triggerSwipe("right");
     } else if (info.offset.x < -threshold) {
-      setExitX(-300);
-      onSwipeLeft();
+      triggerSwipe("left");
     } else {
       // Spring back
       controls.start({ x: 0, transition: { type: "spring", stiffness: 300, damping: 20 } });
@@ -37,11 +55,9 @@ export function SwipeDeck({ children, onSwipeLeft, onSwipeRight }: SwipeDeckProp
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       if (e.key === "ArrowLeft") {
-        setExitX(-300);
-        onSwipeLeft();
+        triggerSwipe("left");
       } else if (e.key === "ArrowRight") {
-        setExitX(300);
-        onSwipeRight();
+        triggerSwipe("right");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -61,6 +77,36 @@ export function SwipeDeck({ children, onSwipeLeft, onSwipeRight }: SwipeDeckProp
         className="absolute inset-0 cursor-grab active:cursor-grabbing flex items-center justify-center"
       >
         {children}
+        <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 translate-y-1/2 items-center gap-3 sm:gap-4">
+          <button
+            type="button"
+            aria-label="Swipe left"
+            className="pointer-events-auto flex size-14 items-center justify-center rounded-full border border-border/70 bg-card/95 text-destructive shadow-xl backdrop-blur transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02] active:scale-95 sm:size-16"
+            onPointerDownCapture={(event) => event.stopPropagation()}
+            onClick={() => triggerSwipe("left")}
+          >
+            <ArrowLeft className="size-6 sm:size-7" />
+          </button>
+          <button
+            type="button"
+            aria-label="Undo last swipe"
+            className="pointer-events-auto flex size-12 items-center justify-center rounded-full border border-border/70 bg-background/95 text-foreground shadow-lg backdrop-blur transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 sm:size-14"
+            disabled={undoDisabled}
+            onPointerDownCapture={(event) => event.stopPropagation()}
+            onClick={onUndo}
+          >
+            <Undo2 className="size-5 sm:size-6" />
+          </button>
+          <button
+            type="button"
+            aria-label="Swipe right"
+            className="pointer-events-auto flex size-14 items-center justify-center rounded-full border border-border/70 bg-card/95 text-primary shadow-xl backdrop-blur transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.02] active:scale-95 sm:size-16"
+            onPointerDownCapture={(event) => event.stopPropagation()}
+            onClick={() => triggerSwipe("right")}
+          >
+            <Heart className="size-6 fill-current sm:size-7" />
+          </button>
+        </div>
       </motion.div>
     </div>
   );
