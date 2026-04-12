@@ -181,6 +181,18 @@ export default function Home() {
       </div>
 
       <div className="flex-1 w-full flex items-center justify-center p-4 pt-16 pb-28 sm:pb-32 relative overflow-hidden absolute inset-0">
+         {/* Thin grid background */}
+         <div
+           aria-hidden="true"
+           className="pointer-events-none absolute inset-0"
+           style={{
+             backgroundImage:
+               `repeating-linear-gradient(0deg, var(--border) 0 0.5px, transparent 0.5px 100%),
+                repeating-linear-gradient(90deg, var(--border) 0 0.5px, transparent 0.5px 100%)`,
+             backgroundSize: '48px 48px',
+             opacity: 0.3,
+           }}
+         />
          <AnimatePresence>
             {activeSymbol && (
               <SwipeDeck
