@@ -30,7 +30,7 @@ export default function TickerPage({ params }: { params: Promise<{ symbol: strin
         </div>
       </div>
 
-      <div className="relative flex w-full flex-1 items-start justify-center overflow-hidden px-4 pt-[3.75rem] pb-[4.75rem] sm:items-center sm:pt-16 sm:pb-32">
+      <div className="relative flex w-full flex-1 items-start justify-center overflow-hidden px-4 pt-20 pb-[4.75rem] sm:items-center sm:pt-24 sm:pb-32">
          <div
            aria-hidden="true"
            className="pointer-events-none absolute inset-0"

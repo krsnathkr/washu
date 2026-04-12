@@ -145,17 +145,35 @@ export const ChartPanel = memo(function ChartPanel({ symbol, initialChart }: { s
 
     chart.timeScale().fitContent();
 
-    // Make chart responsive
-    const handleResize = () => {
-      chart.applyOptions({
-        width: container.clientWidth,
-        height: container.clientHeight,
-      });
+    const syncChartSize = () => {
+      const { width, height } = container.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
+      chart.resize(Math.floor(width), Math.floor(height));
     };
-    window.addEventListener("resize", handleResize);
+
+    syncChartSize();
+
+    let resizeFrame = requestAnimationFrame(() => {
+      syncChartSize();
+    });
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(() => {
+              syncChartSize();
+            });
+          })
+        : null;
+
+    resizeObserver?.observe(container);
+    window.addEventListener("resize", syncChartSize);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(resizeFrame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", syncChartSize);
       chart.remove();
     };
   }, [candlestickData, chartData, effectiveChartMode, hasChartData]); // Re-render chart on data or mode change

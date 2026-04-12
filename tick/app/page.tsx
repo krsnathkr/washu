@@ -184,7 +184,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative flex w-full flex-1 items-start justify-center overflow-hidden px-4 pt-[3.75rem] pb-[4.75rem] sm:items-center sm:pt-16 sm:pb-32">
+      <div className="relative flex w-full flex-1 items-start justify-center overflow-hidden px-4 pt-20 pb-[4.75rem] sm:items-center sm:pt-24 sm:pb-32">
          {/* Thin grid background */}
          <div
            aria-hidden="true"
