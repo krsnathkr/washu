@@ -1,6 +1,34 @@
 import { BullBear, SentimentSummary } from './types';
 
 const GEMINI_MODEL = "gemini-2.5-flash";
+const SENTIMENT_SCHEMA = {
+  type: "object",
+  properties: {
+    label: {
+      type: "string",
+      enum: ["Bullish", "Bearish", "Mixed"],
+      description: "Overall sentiment label",
+    },
+    points: {
+      type: "array",
+      items: { type: "string" },
+      minItems: 3,
+      maxItems: 3,
+      description: "3 short bullet points summarizing the community's sentiment",
+    },
+  },
+  required: ["label", "points"],
+  additionalProperties: false,
+} as const;
+
+function extractJsonPayload(text: string): string {
+  const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  return (fencedMatch?.[1] ?? text).trim();
+}
+
+function parseJsonPayload<T>(text: string): T {
+  return JSON.parse(extractJsonPayload(text)) as T;
+}
 
 function getApiKey() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -62,7 +90,7 @@ async function geminiGenerate<T>(prompt: string, responseJsonSchema?: Record<str
   }
 
   try {
-    return JSON.parse(text) as T;
+    return parseJsonPayload<T>(text);
   } catch {
     throw new Error("Gemini returned invalid JSON");
   }
@@ -110,27 +138,34 @@ Posts:
 ${JSON.stringify(posts, null, 2)}
   `;
 
-  const schema = {
-    type: "object",
-    properties: {
-      label: {
-        type: "string",
-        enum: ["Bullish", "Bearish", "Mixed"],
-        description: "Overall sentiment label"
-      },
-      points: {
-        type: "array",
-        items: { type: "string" },
-        minItems: 3,
-        maxItems: 3,
-        description: "3 short bullet points summarizing the community's sentiment"
-      }
-    },
-    required: ["label", "points"],
-    additionalProperties: false,
-  };
+  return geminiGenerate<SentimentSummary>(prompt, SENTIMENT_SCHEMA) as Promise<SentimentSummary>;
+}
 
-  return geminiGenerate<SentimentSummary>(prompt, schema) as Promise<SentimentSummary>;
+export async function generateIndexedRedditSentimentSummary(
+  symbol: string
+): Promise<SentimentSummary> {
+  const prompt = `Use Google Search to find recent public Reddit discussions about the stock ticker ${symbol}, prioritizing results from r/stocks, r/wallstreetbets, and r/investing.
+
+Return only JSON with this exact shape:
+{"label":"Bullish|Bearish|Mixed","points":["point 1","point 2","point 3"]}
+
+Rules:
+- Base the answer only on recent indexed public discussion results you can actually find.
+- If the results are sparse, stale, or contradictory, return Mixed.
+- If needed, one bullet may briefly note that this is inferred from indexed public discussion results because the live Reddit feed was unavailable.
+- Keep the points short, specific, and investor-focused.`;
+
+  const text = await geminiGenerate<string>(
+    prompt,
+    undefined,
+    [{ googleSearch: {} }]
+  ) as string;
+
+  try {
+    return parseJsonPayload<SentimentSummary>(text);
+  } catch {
+    throw new Error("Gemini returned invalid fallback sentiment JSON");
+  }
 }
 
 export async function generateChatResponse(context: any, question: string): Promise<string> {
