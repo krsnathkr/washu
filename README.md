@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # 📈 Tick
 
@@ -63,8 +63,8 @@ Tick reimagines stock research for the modern retail investor. Instead of drowni
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/tick.git
-cd tick
+git clone https://github.com/krsnathkr/washu.git
+cd washu/tick
 
 # Install dependencies
 npm install
@@ -222,9 +222,4 @@ All external API calls are cached server-side to respect free-tier rate limits:
 | `GEMINI_API_KEY` | ✅ | Google Gemini API key for AI features |
 | `NEWSAPI_KEY` | ✅ | NewsAPI key for recent headlines |
 
----
 
-## 📝 License
-
-This project was built for the WashU hackathon.
-]]>
